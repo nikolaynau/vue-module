@@ -1,0 +1,43 @@
+{
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@9.15.4",
+  "type": "module",
+  "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "lint": "eslint --cache .",
+    "lint:fix": "pnpm run lint --fix",
+    "format": "prettier --write --cache .",
+    "prepare": "simple-git-hooks"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@commitlint/types": "^19.5.0",
+    "@vue/eslint-config-prettier": "^10.1.0",
+    "@vue/eslint-config-typescript": "^14.3.0",
+    "@vue/tsconfig": "^0.7.0",
+    "eslint": "^9.18.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "lint-staged": "^15.4.1",
+    "prettier": "^3.4.2",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged --no-stash",
+    "commit-msg": "pnpm commitlint --edit"
+  },
+  "lint-staged": {
+    "*.{ts,vue}": [
+      "eslint --cache --fix",
+      "prettier --write"
+    ],
+    "*.{js,json,md}": [
+      "prettier --write"
+    ]
+  }
+}
