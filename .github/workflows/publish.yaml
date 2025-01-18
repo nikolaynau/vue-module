@@ -45,6 +45,6 @@ jobs:
           prerelease: false
       - name: Publish
         if: success()
-        run: pnp_m -r publish --access public
+        run: pnpm -r publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
