@@ -1,0 +1,1 @@
+# @vuemodule/core

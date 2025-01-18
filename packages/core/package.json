@@ -1,5 +1,5 @@
 {
-  "name": "create-vue-module",
+  "name": "@vuemodule/core",
   "version": "1.0.0",
   "type": "module",
   "description": "",
@@ -15,24 +15,31 @@
   },
   "keywords": [
     "vue",
-    "module",
-    "cli"
+    "module"
   ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    },
+    "./*": "./*"
+  },
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
+  "types": "./dist/index.d.ts",
   "files": [
-    "dist",
-    "bin",
-    "template"
+    "dist"
   ],
-  "bin": {
-    "create-vue-module": "bin/cli.cjs"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
-    "build": "unbuild"
+    "build": "vite build"
+  },
+  "peerDependencies": {
+    "vue": ">=3.0.0"
   },
   "devDependencies": {
-    "unbuild": "^3.3.1"
+    "vite-plugin-dts": "^4.5.0",
+    "vite": "^6.0.7"
   }
 }

@@ -10,8 +10,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
-      "vue-module": ["packages/vue-module/src"],
-      "@vuemodule/vite": ["packages/vite/src"]
+      "@vuemodule/*": ["packages/*/src"]
     },
     "noEmit": true,
     "resolveJsonModule": true,

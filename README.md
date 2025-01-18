@@ -1,1 +1,1 @@
-# vue-module
+# @vuemodule/\*
