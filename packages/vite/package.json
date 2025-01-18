@@ -2,7 +2,7 @@
   "name": "@vuemodule/vite",
   "version": "1.0.2",
   "type": "module",
-  "description": "",
+  "description": "Vite plugin for Vue Module, providing enhanced functionality and module-specific utilities for Vue projects.",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
   "license": "MIT",
   "homepage": "https://github.com/nikolaynau/vue-module",

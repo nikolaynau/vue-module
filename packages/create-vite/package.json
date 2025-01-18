@@ -2,7 +2,7 @@
   "name": "@vuemodule/create-vite",
   "version": "1.0.2",
   "type": "module",
-  "description": "",
+  "description": "CLI tool for creating Vue modules based on the Vue Module template, powered by Vite.",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
   "license": "MIT",
   "homepage": "https://github.com/nikolaynau/vue-module",
