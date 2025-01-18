@@ -33,7 +33,7 @@
     "bin"
   ],
   "bin": {
-    "vue-module": "bin/cli.cjs"
+    "vuemodule-vite": "bin/cli.cjs"
   },
   "scripts": {
     "build": "unbuild && pnpm run patch-cjs",
