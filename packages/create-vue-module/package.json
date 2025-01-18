@@ -1,0 +1,38 @@
+{
+  "name": "create-vue-module",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
+  "license": "MIT",
+  "homepage": "https://github.com/nikolaynau/vue-module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nikolaynau/vue-module.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nikolaynau/vue-module/issues"
+  },
+  "keywords": [
+    "vue",
+    "module",
+    "cli"
+  ],
+  "files": [
+    "dist",
+    "bin",
+    "template"
+  ],
+  "bin": {
+    "create-vue-module": "bin/cli.cjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "unbuild"
+  },
+  "devDependencies": {
+    "unbuild": "^3.3.1"
+  }
+}
