@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "packageManager": "pnpm@9.15.4",
   "type": "module",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
@@ -9,7 +9,7 @@
     "build": "pnpm -r run build",
     "check": "tsc --noEmit",
     "clean": "rimraf --glob packages/*/dist .eslintcache",
-    "release": "bumpp --all",
+    "release": "bumpp --all -r",
     "lint": "eslint --cache .",
     "lint:fix": "pnpm run lint --fix",
     "format": "prettier --write --cache .",
