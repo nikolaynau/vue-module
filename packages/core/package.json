@@ -1,6 +1,6 @@
 {
   "name": "@vuemodule/core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Core library for Vue Module, enabling dynamic module loading in Vue applications using dynamic imports.",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
