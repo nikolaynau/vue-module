@@ -1,12 +1,17 @@
-import pluginVue from 'eslint-plugin-vue';
-import vueTsEslintConfig from '@vue/eslint-config-typescript';
-import skipFormattingConfig from '@vue/eslint-config-prettier/skip-formatting';
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
-export default [
-  ...pluginVue.configs['flat/essential'],
-  ...vueTsEslintConfig(),
-  skipFormattingConfig,
+export default tseslint.config(
+  eslint.configs.recommended,
+  tseslint.configs.recommended,
+  eslintConfigPrettier,
   {
-    ignores: ['dist/*']
+    ignores: ['dist/*'],
+    languageOptions: {
+      globals: {
+        require: 'readonly'
+      }
+    }
   }
-];
+);
