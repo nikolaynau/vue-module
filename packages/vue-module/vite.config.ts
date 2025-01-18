@@ -22,11 +22,10 @@ export default defineConfig({
       fileName: format => `index.${format}.js`
     },
     rollupOptions: {
-      external: ['vue', '@vueuse/core'],
+      external: ['vue'],
       output: {
         globals: {
-          vue: 'Vue',
-          '@vueuse/core': 'VueUse'
+          vue: 'Vue'
         }
       }
     },
