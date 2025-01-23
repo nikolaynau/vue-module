@@ -13,6 +13,10 @@
     "lint": "eslint --cache .",
     "lint:fix": "pnpm run lint --fix",
     "format": "prettier --write --cache .",
+    "test": "vitest",
+    "test-unit": "pnpm test run",
+    "test-dts": "pnpm run build && pnpm run test-dts-only",
+    "test-dts-only": "pnpm tsd -f ./*.test-d.ts packages/dts-test",
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
@@ -24,12 +28,15 @@
     "bumpp": "^9.10.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
+    "jsdom": "^26.0.0",
     "lint-staged": "^15.4.1",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.11.1",
+    "tsd": "^0.31.2",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^3.0.3"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged --no-stash",
