@@ -2,90 +2,110 @@ import { expectType, expectError } from 'tsd';
 import type { ModuleConfig, ModuleContext, ModuleMeta } from '@vuemodule/core';
 
 // Valid ModuleConfig with basic options
-const basicConfig: ModuleConfig = {
-  options: { key: 'value' },
-  enforce: 'pre'
-};
-expectType<ModuleConfig>(basicConfig);
-
-// Valid ModuleConfig with loader
-const configWithLoader: ModuleConfig = {
-  loader: () => ({
+const basicModuleConfig: ModuleConfig = {
+  loader: async () => ({
     meta: { name: 'TestModule', version: '1.0.0' },
-    setup: context => {
-      expectType<ModuleContext>(context); // Ensure the context is valid
+    setup: async context => {
+      expectType<ModuleContext>(context); // Ensure context matches
       return { key: 'value' };
     }
   }),
-  enforce: 'post'
+  options: { key: 'value' },
+  enforce: 'pre'
 };
-expectType<ModuleConfig>(configWithLoader);
+expectType<ModuleConfig>(basicModuleConfig);
 
-// Valid ModuleConfig with resolved result
-const resolvedConfig: ModuleConfig = {
+// Valid ModuleConfig with async options
+const asyncOptionsModuleConfig: ModuleConfig = {
+  loader: async () => ({
+    meta: { name: 'AsyncModule', version: '1.0.0' },
+    setup: async context => {
+      expectType<ModuleContext>(context); // Ensure context matches
+      return;
+    }
+  }),
+  options: async meta => {
+    expectType<ModuleMeta | undefined>(meta); // Meta is optional
+    return { asyncKey: true };
+  }
+};
+expectType<ModuleConfig>(asyncOptionsModuleConfig);
+
+// Valid ModuleConfig with dependencies
+const moduleConfigWithDeps: ModuleConfig = {
+  loader: async () => ({
+    meta: { name: 'ModuleWithDeps' },
+    setup: context => {
+      expectType<ModuleContext>(context);
+      return false;
+    }
+  }),
+  deps: [
+    async () => {
+      return 'Dependency resolved';
+    }
+  ]
+};
+expectType<ModuleConfig>(moduleConfigWithDeps);
+
+// Valid ModuleConfig with resolved data
+const resolvedModuleConfig: ModuleConfig = {
+  loader: async () => ({
+    meta: { name: 'ResolvedModule' }
+  }),
   resolved: {
-    options: { key: 'value' },
-    exports: { key: 'exportedValue' },
-    meta: { name: 'ResolvedModule' },
+    options: { resolvedKey: true },
+    exports: { key: 'exportValue' },
+    meta: { name: 'ResolvedModule', version: '1.0.0' },
     hooks: [
       {
-        key: 'testHook',
-        callback: moduleConfig => {
-          expectType<ModuleConfig | ModuleConfig[] | undefined>(moduleConfig);
+        callback: config => {
+          expectType<ModuleConfig | ModuleConfig[] | undefined>(config);
           return;
         }
       }
     ]
   }
 };
-expectType<ModuleConfig>(resolvedConfig);
+expectType<ModuleConfig>(resolvedModuleConfig);
 
-// Valid ModuleConfig with asynchronous options
-const asyncOptionsConfig: ModuleConfig = {
-  options: async meta => {
-    expectType<ModuleMeta | undefined>(meta); // Ensure meta is valid
-    return { key: 'asyncValue' };
-  }
-};
-expectType<ModuleConfig>(asyncOptionsConfig);
+// Error cases
 
-// Valid ModuleConfig with dependencies
-const configWithDeps: ModuleConfig = {
-  deps: [
-    async () => {
-      return 'dependencyResult';
-    }
-  ]
-};
-expectType<ModuleConfig>(configWithDeps);
-
-// Error: invalid `enforce` value
+// Missing loader
 expectError<ModuleConfig>({
-  enforce: 'invalid' // Invalid: should be 'pre', 'post', or 'fin'
+  options: { key: 'value' }
 });
 
-// Error: loader returns invalid type
+// Invalid enforce value
 expectError<ModuleConfig>({
-  loader: () => {
-    return {
-      invalidKey: 'value' // Invalid: not a valid ModuleDefinition
-    };
-  }
+  loader: async () => ({
+    meta: { name: 'InvalidEnforce' }
+  }),
+  enforce: 'invalidPhase' // Should be 'pre', 'post', or 'fin'
 });
 
-// Error: invalid resolved options type
+// Invalid dependency type
 expectError<ModuleConfig>({
+  loader: async () => ({
+    meta: { name: 'InvalidDep' }
+  }),
+  deps: ['invalidDependency'] // Dependencies must be functions
+});
+
+// Invalid resolved data
+expectError<ModuleConfig>({
+  loader: async () => ({
+    meta: { name: 'InvalidResolved' }
+  }),
   resolved: {
-    options: 'invalid' // Invalid: should be a ModuleOptions object
+    options: 'invalidOptions' // Options must be an object
   }
 });
 
-// Error: invalid dependency type
+// Invalid options type
 expectError<ModuleConfig>({
-  deps: ['invalidDep'] // Invalid: dependencies must be functions
-});
-
-// Error: options with invalid type
-expectError<ModuleConfig>({
-  options: 123 // Invalid: should be a function or ModuleOptions
+  loader: async () => ({
+    meta: { name: 'InvalidOptions' }
+  }),
+  options: 123 // Options must be an object or a function
 });
