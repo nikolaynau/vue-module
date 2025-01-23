@@ -108,10 +108,10 @@ const modules = createModules(
 await modules.install();
 
 // Install moduleA
-// modules[0].install();
+await modules[0].install();
 
 // Install moduleB
-// modules[1].install();
+await modules[1].install();
 
 // Access module configuration and exports
 const { resolved } = modules.moduleA; // moduleA
