@@ -1,0 +1,39 @@
+import { expectType, expectError } from 'tsd';
+import type { ModuleSetupReturn } from '@vuemodule/core';
+
+// Correct cases for ModuleOptions
+const validOptions: ModuleSetupReturn = {
+  key1: 'value1', // string
+  key2: 123, // number
+  key3: true, // boolean
+  key4: { nested: 'value' }, // object
+  key5: [1, 2, 3], // array
+  key6: null, // null (valid as unknown)
+  key7: undefined // undefined (valid as unknown)
+};
+expectType<Record<string, unknown>>(validOptions);
+
+const emptyOptions: ModuleSetupReturn = {};
+expectType<Record<string, unknown>>(emptyOptions);
+
+// Custom keys with nested objects
+const customOptions: ModuleSetupReturn = {
+  customKey1: 'value',
+  customKey2: 42,
+  customKey3: { nestedKey: 'nestedValue' }
+};
+expectType<Record<string, unknown>>(customOptions);
+
+// Error cases
+expectError<ModuleSetupReturn>(null); // Error: null is not an object
+expectError<ModuleSetupReturn>(undefined); // Error: undefined is not an object
+expectError<ModuleSetupReturn>(123); // Error: number is not an object
+expectError<ModuleSetupReturn>('string'); // Error: string is not an object
+expectError<ModuleSetupReturn>([1, 2, 3]); // Error: array is not allowed at the top level
+
+// Valid values with symbol and function
+const validOptionsWithSymbolAndFn: ModuleSetupReturn = {
+  key1: Symbol('symbol'),
+  key2: () => {}
+};
+expectType<ModuleSetupReturn>(validOptionsWithSymbolAndFn);
