@@ -21,6 +21,8 @@ $ pnpm add @vuemodule/core
 
 moduleA.ts
 
+A module with input options and a return value:
+
 ```ts
 import { defineModule, type ModuleMap } from '@vuemodule/core';
 
@@ -51,6 +53,8 @@ export default defineModule<ModuleOptions, ModuleSetupReturn>(
 ```
 
 moduleB.ts
+
+A module using hooks to interact with another module:
 
 ```ts
 import { defineModule, onInstalled, onUninstall } from '@vuemodule/core';
