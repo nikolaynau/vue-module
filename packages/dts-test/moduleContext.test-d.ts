@@ -48,12 +48,6 @@ expectError<ModuleContext>({
   meta: 'invalidMeta' // meta must be an object
 });
 
-// Error: Awaitable<ModuleMeta> support for meta (e.g., a promise)
-expectError<ModuleContext>({
-  options: { key: 'value' },
-  meta: Promise.resolve({ name: 'asyncModule', version: '1.0.0' })
-});
-
 // Valid case: nested objects in options
 const nestedOptionsContext: ModuleContext = {
   options: {

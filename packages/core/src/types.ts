@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface ModuleMeta {
   name?: string;
   version?: string;
-  [key: string]: unknown;
+  [key: string]: any;
 }
 
 export type Awaitable<T> = T | Promise<T>;
 
-export type ModuleOptions = Record<string, unknown>;
+export type ModuleOptions = Record<string, any>;
 
-export type ModuleSetupReturn = Record<string, unknown>;
+export type ModuleSetupReturn = Record<string, any>;
 
 export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
   options: T;
@@ -28,7 +31,7 @@ export interface ModuleDefinition<
   setup?: ModuleSetupFunction<T, R>;
 }
 
-export type ModuleDep = () => Awaitable<unknown>;
+export type ModuleDep = () => Awaitable<any>;
 
 export type ModulePhase = 'pre' | 'post' | 'fin';
 
@@ -58,7 +61,7 @@ export interface ModuleConfig<
 
 export type ModuleHookCallback = (
   moduleConfig?: ModuleConfig | ModuleConfig[]
-) => Awaitable<void | unknown>;
+) => Awaitable<any>;
 
 export interface ModuleHookConfig {
   callback: ModuleHookCallback;
@@ -68,11 +71,11 @@ export interface ResolvedModule<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
 > {
-  options?: T;
-  exports?: R;
-  meta?: ModuleMeta;
-  hooks?: ModuleHookConfig[];
+  options: T | undefined;
+  exports: R | undefined;
+  meta: ModuleMeta | undefined;
+  hooks: ModuleHookConfig[];
+  disposed: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ModuleMap extends Record<string, unknown> {}
+export interface ModuleMap extends Record<string, any> {}

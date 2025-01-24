@@ -12,14 +12,17 @@ export function defineModule<
   name: string,
   setup: ModuleSetupFunction<TOptions, TResult>
 ): ModuleDefinition<TOptions>;
+
 export function defineModule<
   TOptions extends ModuleOptions = ModuleOptions,
   TResult extends ModuleSetupReturn = ModuleSetupReturn
 >(setup: ModuleSetupFunction<TOptions, TResult>): ModuleDefinition<TOptions>;
+
 export function defineModule<
   TOptions extends ModuleOptions = ModuleOptions,
   TResult extends ModuleSetupReturn = ModuleSetupReturn
 >(definition: ModuleDefinition<TOptions, TResult>): ModuleDefinition<TOptions>;
+
 export function defineModule<
   TOptions extends ModuleOptions = ModuleOptions,
   TResult extends ModuleSetupReturn = ModuleSetupReturn

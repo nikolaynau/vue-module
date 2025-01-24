@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { expectType, expectError } from 'tsd';
 import type { ModuleMeta } from '@vuemodule/core';
 
@@ -8,7 +10,7 @@ const validMeta: ModuleMeta = {
 };
 expectType<string | undefined>(validMeta.name);
 expectType<string | undefined>(validMeta.version);
-expectType<unknown>(validMeta.customKey);
+expectType<any>(validMeta.customKey);
 
 expectError<ModuleMeta>({
   name: 123

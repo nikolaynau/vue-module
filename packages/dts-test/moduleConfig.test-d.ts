@@ -57,6 +57,7 @@ const resolvedModuleConfig: ModuleConfig = {
     options: { resolvedKey: true },
     exports: { key: 'exportValue' },
     meta: { name: 'ResolvedModule', version: '1.0.0' },
+    disposed: false,
     hooks: [
       {
         callback: config => {

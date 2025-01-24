@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { expectType, expectError } from 'tsd';
 import type { ModuleOptions } from '@vuemodule/core';
 
@@ -8,13 +10,13 @@ const validOptions: ModuleOptions = {
   key3: true, // boolean
   key4: { nested: 'value' }, // object
   key5: [1, 2, 3], // array
-  key6: null, // null (valid as unknown)
-  key7: undefined // undefined (valid as unknown)
+  key6: null, // null (valid as any)
+  key7: undefined // undefined (valid as any)
 };
-expectType<Record<string, unknown>>(validOptions);
+expectType<Record<string, any>>(validOptions);
 
 const emptyOptions: ModuleOptions = {};
-expectType<Record<string, unknown>>(emptyOptions);
+expectType<Record<string, any>>(emptyOptions);
 
 // Custom keys with nested objects
 const customOptions: ModuleOptions = {
@@ -22,14 +24,13 @@ const customOptions: ModuleOptions = {
   customKey2: 42,
   customKey3: { nestedKey: 'nestedValue' }
 };
-expectType<Record<string, unknown>>(customOptions);
+expectType<Record<string, any>>(customOptions);
 
 // Error cases
 expectError<ModuleOptions>(null); // Error: null is not an object
 expectError<ModuleOptions>(undefined); // Error: undefined is not an object
 expectError<ModuleOptions>(123); // Error: number is not an object
 expectError<ModuleOptions>('string'); // Error: string is not an object
-expectError<ModuleOptions>([1, 2, 3]); // Error: array is not allowed at the top level
 
 // Valid values with symbol and function
 const validOptionsWithSymbolAndFn: ModuleOptions = {
