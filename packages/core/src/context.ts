@@ -12,6 +12,10 @@ export function setActiveContext(
   activeContext = context;
 }
 
+export function getActiveContext(): ModuleInternalContext | undefined {
+  return activeContext;
+}
+
 export function createInternalContext(): ModuleInternalContext {
   return {
     meta: {},

@@ -60,8 +60,9 @@ const resolvedModuleConfig: ModuleConfig = {
     disposed: false,
     hooks: [
       {
-        callback: config => {
-          expectType<ModuleConfig | ModuleConfig[] | undefined>(config);
+        key: 'moduleA',
+        type: 'installed',
+        callback: () => {
           return;
         }
       }

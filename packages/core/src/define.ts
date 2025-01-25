@@ -7,36 +7,41 @@ import type {
 
 export function defineModule<
   TOptions extends ModuleOptions = ModuleOptions,
-  TResult extends ModuleSetupReturn = ModuleSetupReturn
+  TResult extends ModuleSetupReturn = ModuleSetupReturn,
+  TName = string
 >(
-  name: string,
+  name: TName,
   setup: ModuleSetupFunction<TOptions, TResult>
-): ModuleDefinition<TOptions>;
-
-export function defineModule<
-  TOptions extends ModuleOptions = ModuleOptions,
-  TResult extends ModuleSetupReturn = ModuleSetupReturn
->(setup: ModuleSetupFunction<TOptions, TResult>): ModuleDefinition<TOptions>;
-
-export function defineModule<
-  TOptions extends ModuleOptions = ModuleOptions,
-  TResult extends ModuleSetupReturn = ModuleSetupReturn
->(definition: ModuleDefinition<TOptions, TResult>): ModuleDefinition<TOptions>;
+): ModuleDefinition<TOptions, TResult>;
 
 export function defineModule<
   TOptions extends ModuleOptions = ModuleOptions,
   TResult extends ModuleSetupReturn = ModuleSetupReturn
 >(
-  definition: unknown,
+  setup: ModuleSetupFunction<TOptions, TResult>
+): ModuleDefinition<TOptions, TResult>;
+
+export function defineModule<
+  TOptions extends ModuleOptions = ModuleOptions,
+  TResult extends ModuleSetupReturn = ModuleSetupReturn
+>(
+  definition: ModuleDefinition<TOptions, TResult>
+): ModuleDefinition<TOptions, TResult>;
+
+export function defineModule<
+  TOptions extends ModuleOptions = ModuleOptions,
+  TResult extends ModuleSetupReturn = ModuleSetupReturn
+>(
+  arg: unknown,
   setup?: ModuleSetupFunction<TOptions, TResult>
-): ModuleDefinition<TOptions> {
-  if (typeof definition === 'function') {
+): ModuleDefinition<TOptions, TResult> {
+  if (typeof arg === 'function') {
     return defineModule({
-      setup: definition as ModuleSetupFunction<TOptions, TResult>
+      setup: arg as ModuleSetupFunction<TOptions, TResult>
     });
-  } else if (typeof definition === 'string') {
-    return defineModule({ meta: { name: definition }, setup });
+  } else if (typeof arg === 'string') {
+    return defineModule({ meta: { name: arg }, setup });
   } else {
-    return definition as ModuleDefinition<TOptions>;
+    return arg as ModuleDefinition<TOptions, TResult>;
   }
 }

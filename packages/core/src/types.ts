@@ -14,8 +14,8 @@ export type ModuleOptions = Record<string, any>;
 export type ModuleSetupReturn = Record<string, any>;
 
 export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
-  options: T;
-  meta: ModuleMeta;
+  readonly options: Readonly<T>;
+  readonly meta: Readonly<ModuleMeta>;
 }
 
 export type ModuleSetupFunction<
@@ -59,11 +59,13 @@ export interface ModuleConfig<
   resolved?: ResolvedModule<T, R>;
 }
 
-export type ModuleHookCallback = (
-  moduleConfig?: ModuleConfig | ModuleConfig[]
-) => Awaitable<any>;
+export type ModuleHookType = 'installed';
+
+export type ModuleHookCallback = () => Awaitable<any>;
 
 export interface ModuleHookConfig {
+  key: string | string[] | null;
+  type: ModuleHookType;
   callback: ModuleHookCallback;
 }
 
@@ -78,4 +80,8 @@ export interface ResolvedModule<
   disposed: boolean;
 }
 
-export interface ModuleMap extends Record<string, any> {}
+export interface ModuleMap {}
+
+export type ModuleKeys = (keyof ModuleMap)[];
+
+export type ModuleKey = keyof ModuleMap;

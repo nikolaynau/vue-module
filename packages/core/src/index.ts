@@ -4,3 +4,5 @@ export * from './module';
 export * from './loader';
 
 export { setMeta, setName, setVersion } from './context';
+
+export { onInstalled } from './hooks';

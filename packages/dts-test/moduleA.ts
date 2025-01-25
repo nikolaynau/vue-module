@@ -1,16 +1,25 @@
-import { defineModule } from '@vuemodule/core';
+import { defineModule, type ModuleKey } from '@vuemodule/core';
 
-export interface ModuleOptions {
+export interface ModuleAOptions {
   foo: string;
   baz?: number;
 }
 
-export interface ModuleSetupReturn {
+export interface ModuleAReturn {
   bar: string;
 }
 
-export default defineModule<ModuleOptions, ModuleSetupReturn>('moduleA', () => {
-  return {
-    bar: 'bar'
-  };
-});
+declare module '@vuemodule/core' {
+  interface ModuleMap {
+    moduleA: ModuleAReturn;
+  }
+}
+
+export default defineModule<ModuleAOptions, ModuleAReturn, ModuleKey>(
+  'moduleA',
+  () => {
+    return {
+      bar: 'baz'
+    };
+  }
+);
