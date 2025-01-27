@@ -9,6 +9,8 @@ export interface ModuleMeta {
 
 export type Awaitable<T> = T | Promise<T>;
 
+export type Arrayable<T> = T | T[];
+
 export type ModuleOptions = Record<string, any>;
 
 export type ModuleSetupReturn = Record<string, any>;
@@ -42,7 +44,12 @@ export type ModuleLoader<
   R extends ModuleSetupReturn = ModuleSetupReturn
 > = () => Awaitable<ModuleLoaderResult<ModuleDefinition<T, R>>>;
 
-export interface ModuleLoadConfig<
+export type ModuleLoadConfig<
+  T extends ModuleOptions = ModuleOptions,
+  R extends ModuleSetupReturn = ModuleSetupReturn
+> = Omit<ModuleConfig<T, R>, 'resolved'>;
+
+export interface ModuleConfig<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
 > {
@@ -50,20 +57,16 @@ export interface ModuleLoadConfig<
   options?: ((meta?: ModuleMeta) => Awaitable<T>) | T;
   enforce?: ModulePhase;
   deps?: ModuleDep[];
-}
-
-export interface ModuleConfig<
-  T extends ModuleOptions = ModuleOptions,
-  R extends ModuleSetupReturn = ModuleSetupReturn
-> extends ModuleLoadConfig<T, R> {
   resolved?: ResolvedModule<T, R>;
 }
 
-export type ModuleHookType = 'installed';
+export type ModuleHookType = 'installed' | 'uninstall';
 
-export type ModuleHookCallback = () => Awaitable<any>;
+export type ModuleHookCallback<T = Arrayable<ModuleConfig>> = (
+  config: T
+) => Awaitable<any>;
 
-export interface ModuleHookConfig {
+export interface ModuleHookConfig<> {
   key: string | string[] | null;
   type: ModuleHookType;
   callback: ModuleHookCallback;
@@ -85,3 +88,13 @@ export interface ModuleMap {}
 export type ModuleKeys = (keyof ModuleMap)[];
 
 export type ModuleKey = keyof ModuleMap;
+
+export type ModuleValue<K extends ModuleKey> = ModuleMap[K];
+
+export type InferModuleValue<K> = K extends ModuleKey
+  ? ModuleMap[K]
+  : ModuleSetupReturn;
+
+export type ConditionalModuleType<T, TrueType, FalseType> = T extends ModuleKey
+  ? TrueType
+  : FalseType;

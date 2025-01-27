@@ -5,4 +5,4 @@ export * from './loader';
 
 export { setMeta, setName, setVersion } from './context';
 
-export { onInstalled } from './hooks';
+export { onInstalled, onUninstall } from './hooks';

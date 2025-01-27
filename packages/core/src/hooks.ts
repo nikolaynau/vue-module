@@ -1,10 +1,14 @@
 import { getActiveContext } from './context';
 import type {
+  ConditionalModuleType,
+  InferModuleValue,
   ModuleConfig,
   ModuleHookCallback,
+  ModuleHookType,
   ModuleKey,
   ModuleOptions,
-  ModuleSetupReturn
+  ModuleSetupReturn,
+  ModuleValue
 } from './types';
 
 export async function callInstallHook<
@@ -21,20 +25,65 @@ export async function callUninstallHook<
   console.log(config);
 }
 
+export function onInstalled<K extends string[]>(
+  name: [...K],
+  fn: ModuleHookCallback<{
+    [P in keyof K]: ConditionalModuleType<
+      K[P],
+      ModuleConfig<ModuleOptions, InferModuleValue<K[P]>>,
+      ModuleConfig
+    >;
+  }>
+): void;
+
 export function onInstalled<K extends ModuleKey>(
-  name: K | K[],
-  fn: ModuleHookCallback
+  name: K,
+  fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
 ): void;
-export function onInstalled(name: 'all', fn: ModuleHookCallback): void;
-export function onInstalled<T = string>(
-  name: T | T[],
-  fn: ModuleHookCallback
-): void;
-export function onInstalled(fn: ModuleHookCallback): void;
+
 export function onInstalled(
-  nameOrFn: string | string[] | ModuleHookCallback,
-  fn?: ModuleHookCallback
-): void {
+  name: 'any',
+  fn: ModuleHookCallback<ModuleConfig>
+): void;
+
+export function onInstalled(
+  name: 'all',
+  fn: ModuleHookCallback<ModuleConfig[]>
+): void;
+
+export function onInstalled<T extends string>(
+  name: T,
+  fn: ModuleHookCallback<ModuleConfig>
+): void;
+
+export function onInstalled(fn: ModuleHookCallback<ModuleConfig>): void;
+
+export function onInstalled(nameOrFn: unknown, fn?: unknown): void {
+  onHook('installed', nameOrFn, fn);
+}
+
+export function onUninstall<K extends ModuleKey>(
+  name: K,
+  fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
+): void;
+
+export function onUninstall(
+  name: 'any',
+  fn: ModuleHookCallback<ModuleConfig>
+): void;
+
+export function onUninstall<T extends string>(
+  name: T,
+  fn: ModuleHookCallback<ModuleConfig>
+): void;
+
+export function onUninstall(fn: ModuleHookCallback<ModuleConfig>): void;
+
+export function onUninstall(nameOrFn: unknown, fn?: unknown): void {
+  onHook('uninstall', nameOrFn, fn);
+}
+
+function onHook(type: ModuleHookType, nameOrFn: unknown, fn?: unknown): void {
   const activeContext = getActiveContext();
   if (!activeContext) {
     return;
@@ -43,8 +92,8 @@ export function onInstalled(
   if (typeof nameOrFn === 'function') {
     activeContext.hooks.push({
       key: null,
-      type: 'installed',
-      callback: nameOrFn
+      type,
+      callback: nameOrFn as ModuleHookCallback
     });
   } else if (
     (typeof nameOrFn === 'string' || Array.isArray(nameOrFn)) &&
@@ -52,8 +101,8 @@ export function onInstalled(
   ) {
     activeContext.hooks.push({
       key: nameOrFn,
-      type: 'installed',
-      callback: fn
+      type,
+      callback: fn as ModuleHookCallback
     });
   }
 }
