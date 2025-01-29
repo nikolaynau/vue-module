@@ -91,11 +91,6 @@ export interface ResolvedModule<
   disposed: boolean;
 }
 
-export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
-  extends ModuleContext<T> {
-  _hooks: ModuleHookConfig[];
-}
-
 export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
   meta: ModuleMeta;
   options: T;
@@ -106,7 +101,18 @@ export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
 
   setMeta(meta: ModuleMeta): void;
 
-  onInstalled<K extends string[]>(
+  onInstalled: InstallHookCallback<T>;
+
+  onUninstall: UninstallHookCallback<T>;
+}
+
+export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
+  extends ModuleContext<T> {
+  _hooks: ModuleHookConfig[];
+}
+
+export interface InstallHookCallback<T extends ModuleOptions = ModuleOptions> {
+  <K extends string[]>(
     name: [...K],
     fn: ModuleHookCallback<{
       [P in keyof K]: ConditionalModuleType<
@@ -117,33 +123,31 @@ export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
     }>
   ): void;
 
-  onInstalled<K extends ModuleKey>(
+  <K extends ModuleKey>(
     name: K,
     fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
   ): void;
 
-  onInstalled(name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
+  (name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
 
-  onInstalled(name: 'all', fn: ModuleHookCallback<ModuleConfig[]>): void;
+  (name: 'all', fn: ModuleHookCallback<ModuleConfig[]>): void;
 
-  onInstalled<T extends string>(
-    name: T,
-    fn: ModuleHookCallback<ModuleConfig>
-  ): void;
+  <T extends string>(name: T, fn: ModuleHookCallback<ModuleConfig>): void;
 
-  onInstalled(fn: ModuleHookCallback<ModuleConfig<T>>): void;
+  (fn: ModuleHookCallback<ModuleConfig<T>>): void;
+}
 
-  onUninstall<K extends ModuleKey>(
+export interface UninstallHookCallback<
+  T extends ModuleOptions = ModuleOptions
+> {
+  <K extends ModuleKey>(
     name: K,
     fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
   ): void;
 
-  onUninstall(name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
+  (name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
 
-  onUninstall<T extends string>(
-    name: T,
-    fn: ModuleHookCallback<ModuleConfig>
-  ): void;
+  <T extends string>(name: T, fn: ModuleHookCallback<ModuleConfig>): void;
 
-  onUninstall(fn: ModuleHookCallback<ModuleConfig<T>>): void;
+  (fn: ModuleHookCallback<ModuleConfig<T>>): void;
 }
