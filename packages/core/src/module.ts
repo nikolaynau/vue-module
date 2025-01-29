@@ -141,7 +141,7 @@ function disposeModule<T extends ModuleOptions, R extends ModuleSetupReturn>(
   const { resolved } = config;
   if (resolved && !resolved.disposed) {
     resolved.disposed = true;
-    resolved.hooks = [];
+    resolved.hooks.length = 0;
     resolved.exports = undefined;
     resolved.meta = undefined;
     resolved.options = undefined;

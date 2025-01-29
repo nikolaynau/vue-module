@@ -1,11 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { loadModule } from '../src/loader';
-import type { ModuleConfig, ModuleLoader } from '@vuemodule/core';
-import { setMeta, setName, setVersion } from '../src/context';
+import type { ModuleConfig, ModuleContext, ModuleLoader } from '../src/types';
 
 describe('loadModule', () => {
   it('should return the config if the loader is invalid', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const config: any = { loader: undefined };
     const result = await loadModule(config);
     expect(result).toBe(config);
@@ -76,10 +74,10 @@ describe('loadModule', () => {
     expect(result.resolved).toBeUndefined();
   });
 
-  it('should set version and name in internalContext inside setup', async () => {
-    const setup = vi.fn(async () => {
-      setVersion('1.1.0');
-      setName('new-test-module');
+  it('should set version and name inside setup', async () => {
+    const setup = vi.fn(async (ctx: ModuleContext) => {
+      ctx.setVersion('1.1.0');
+      ctx.setName('new-test-module');
     });
     const loader = vi.fn(async () => ({
       setup,
@@ -93,7 +91,7 @@ describe('loadModule', () => {
     expect(setup).toHaveBeenCalled();
     expect(result).toHaveProperty('resolved');
     expect(result.resolved).toEqual({
-      options: undefined,
+      options: {},
       exports: undefined,
       meta: { name: 'new-test-module', version: '1.1.0' },
       hooks: [],
@@ -101,10 +99,10 @@ describe('loadModule', () => {
     });
   });
 
-  it('should set meta in internalContext inside setup', async () => {
-    const setup = vi.fn(async () => {
-      setVersion('1.1.0');
-      setMeta({ name: 'new-test-module', foo: 'bar' });
+  it('should set meta inside setup', async () => {
+    const setup = vi.fn(async (ctx: ModuleContext) => {
+      ctx.setVersion('1.1.0');
+      ctx.setMeta({ name: 'new-test-module', foo: 'bar' });
     });
     const loader = vi.fn(async () => ({
       setup,
@@ -118,10 +116,55 @@ describe('loadModule', () => {
     expect(setup).toHaveBeenCalled();
     expect(result).toHaveProperty('resolved');
     expect(result.resolved).toEqual({
-      options: undefined,
+      options: {},
       exports: undefined,
       meta: { name: 'new-test-module', version: '1.1.0', foo: 'bar' },
       hooks: [],
+      disposed: false
+    });
+  });
+
+  it('should set hooks inside setup', async () => {
+    const moduleAInstallHook = () => {};
+    const moduleBInstallHook = () => {};
+    const moduleUninstallHook = () => {};
+
+    const setup = vi.fn(async (ctx: ModuleContext) => {
+      ctx.onInstalled('module-a', moduleAInstallHook);
+      ctx.onInstalled('module-b', moduleBInstallHook);
+      ctx.onUninstall(moduleUninstallHook);
+    });
+    const loader = vi.fn(async () => ({
+      setup
+    }));
+    const config: ModuleConfig = { loader };
+
+    const result = await loadModule(config);
+
+    expect(loader).toHaveBeenCalled();
+    expect(setup).toHaveBeenCalled();
+    expect(result).toHaveProperty('resolved');
+    expect(result.resolved).toEqual({
+      options: {},
+      exports: undefined,
+      meta: {},
+      hooks: [
+        {
+          key: 'module-a',
+          type: 'installed',
+          callback: moduleAInstallHook
+        },
+        {
+          key: 'module-b',
+          type: 'installed',
+          callback: moduleBInstallHook
+        },
+        {
+          key: null,
+          type: 'uninstall',
+          callback: moduleUninstallHook
+        }
+      ],
       disposed: false
     });
   });

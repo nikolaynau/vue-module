@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+export type Awaitable<T> = T | Promise<T>;
+
+export type Arrayable<T> = T | T[];
 
 export interface ModuleMeta {
   name?: string;
@@ -7,18 +8,25 @@ export interface ModuleMeta {
   [key: string]: any;
 }
 
-export type Awaitable<T> = T | Promise<T>;
-
-export type Arrayable<T> = T | T[];
-
 export type ModuleOptions = Record<string, any>;
 
 export type ModuleSetupReturn = Record<string, any>;
 
-export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
-  readonly options: Readonly<T>;
-  readonly meta: Readonly<ModuleMeta>;
-}
+export interface ModuleMap {}
+
+export type ModuleKeys = (keyof ModuleMap)[];
+
+export type ModuleKey = keyof ModuleMap;
+
+export type ModuleValue<K extends ModuleKey> = ModuleMap[K];
+
+export type InferModuleValue<K> = K extends ModuleKey
+  ? ModuleMap[K]
+  : ModuleSetupReturn;
+
+export type ConditionalModuleType<T, TrueType, FalseType> = T extends ModuleKey
+  ? TrueType
+  : FalseType;
 
 export type ModuleSetupFunction<
   T extends ModuleOptions = ModuleOptions,
@@ -83,18 +91,59 @@ export interface ResolvedModule<
   disposed: boolean;
 }
 
-export interface ModuleMap {}
+export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
+  extends ModuleContext<T> {
+  _hooks: ModuleHookConfig[];
+}
 
-export type ModuleKeys = (keyof ModuleMap)[];
+export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
+  meta: ModuleMeta;
+  options: T;
 
-export type ModuleKey = keyof ModuleMap;
+  setName(name: string | undefined): void;
 
-export type ModuleValue<K extends ModuleKey> = ModuleMap[K];
+  setVersion(version: string | undefined): void;
 
-export type InferModuleValue<K> = K extends ModuleKey
-  ? ModuleMap[K]
-  : ModuleSetupReturn;
+  setMeta(meta: ModuleMeta): void;
 
-export type ConditionalModuleType<T, TrueType, FalseType> = T extends ModuleKey
-  ? TrueType
-  : FalseType;
+  onInstalled<K extends string[]>(
+    name: [...K],
+    fn: ModuleHookCallback<{
+      [P in keyof K]: ConditionalModuleType<
+        K[P],
+        ModuleConfig<ModuleOptions, InferModuleValue<K[P]>>,
+        ModuleConfig
+      >;
+    }>
+  ): void;
+
+  onInstalled<K extends ModuleKey>(
+    name: K,
+    fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
+  ): void;
+
+  onInstalled(name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
+
+  onInstalled(name: 'all', fn: ModuleHookCallback<ModuleConfig[]>): void;
+
+  onInstalled<T extends string>(
+    name: T,
+    fn: ModuleHookCallback<ModuleConfig>
+  ): void;
+
+  onInstalled(fn: ModuleHookCallback<ModuleConfig<T>>): void;
+
+  onUninstall<K extends ModuleKey>(
+    name: K,
+    fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
+  ): void;
+
+  onUninstall(name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
+
+  onUninstall<T extends string>(
+    name: T,
+    fn: ModuleHookCallback<ModuleConfig>
+  ): void;
+
+  onUninstall(fn: ModuleHookCallback<ModuleConfig<T>>): void;
+}

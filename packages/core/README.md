@@ -24,32 +24,29 @@ moduleA.ts
 A module with input options and a return value:
 
 ```ts
-import { defineModule, type ModuleMap } from '@vuemodule/core';
+import { defineModule } from '@vuemodule/core';
 
-export interface ModuleOptions {
+export interface ModuleAOptions {
   foo: string;
 }
 
-export interface ModuleSetupReturn {
+export interface ModuleAReturn {
   bar: string;
 }
 
 declare module '@vuemodule/core' {
   interface ModuleMap {
-    moduleA: ModuleSetupReturn;
+    moduleA: ModuleAReturn;
   }
 }
 
-export default defineModule<ModuleOptions, ModuleSetupReturn>(
-  'moduleA',
-  context => {
-    console.log(context.options); // { foo: 'foo' }
+export default defineModule<ModuleAOptions, ModuleAReturn>('moduleA', ctx => {
+  console.log(ctx.options); // { foo: 'value' }
 
-    return {
-      bar: 'bar'
-    };
-  }
-);
+  return {
+    bar: 'baz'
+  };
+});
 ```
 
 moduleB.ts
@@ -57,15 +54,17 @@ moduleB.ts
 A module using hooks to interact with another module:
 
 ```ts
-import { defineModule, onInstalled, onUninstall } from '@vuemodule/core';
+import { defineModule } from '@vuemodule/core';
 
-export default defineModule(() => {
-  onInstalled('moduleA', moduleA => {
-    console.log(moduleA.bar); // 'bar';
+export default defineModule(ctx => {
+  ctx.onInstalled('moduleA', moduleA => {
+    const { resolved } = moduleA;
+    console.log(resolved?.exports?.bar); // 'baz';
   });
 
-  onUninstall('moduleA', moduleA => {
-    console.log(moduleA.bar); // 'bar';
+  ctx.onUninstall('moduleA', moduleA => {
+    const { resolved } = moduleA;
+    console.log(resolved?.exports?.bar); // 'baz';
   });
 });
 ```
@@ -77,7 +76,7 @@ Example of using a single module:
 ```ts
 import { createModule } from '@vuemodule/core';
 
-const moduleA = createModule(() => import('./moduleA'), { foo: 'foo' });
+const moduleA = createModule(() => import('./moduleA'), { foo: 'bar' });
 
 // Install the module
 await moduleA.install();
@@ -97,12 +96,10 @@ Example of using multiple modules with called hooks:
 ```ts
 import { createModules } from '@vuemodule/core';
 
-const modules = createModules(
-  [() => import('./moduleA'), () => import('./moduleB')],
-  {
-    moduleA: { foo: 'foo' }
-  }
-);
+const modules = createModules([
+  [() => import('./moduleA'), { foo: 'bar' }],
+  () => import('./moduleB')
+]);
 
 // Install all modules
 await modules.install();

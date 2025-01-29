@@ -1,18 +1,13 @@
-import {
-  createInternalContext,
-  setActiveContext,
-  type ModuleInternalContext
-} from './context';
+import { createModuleContext } from './context';
 import type {
+  InternalModuleContext,
   ModuleConfig,
-  ModuleContext,
   ModuleDefinition,
   ModuleLoader,
   ModuleMeta,
   ModuleOptions,
   ModuleSetupFunction,
-  ModuleSetupReturn,
-  ResolvedModule
+  ModuleSetupReturn
 } from './types';
 
 export async function loadModule<
@@ -36,26 +31,24 @@ export async function loadModule<
     config.options,
     moduleDefinition.meta
   );
-  const context = createModuleContext(moduleDefinition.meta, resolvedOptions);
-  const internalContext = createInternalContext();
 
-  setActiveContext(internalContext);
+  const context = createModuleContext<T>(
+    moduleDefinition.meta,
+    resolvedOptions
+  );
 
-  try {
-    const moduleExports = await moduleDefinition.setup(context);
-    if (moduleExports === false) {
-      return config;
-    }
-
-    config.resolved = createResolvedData(
-      moduleExports as R | undefined,
-      resolvedOptions,
-      moduleDefinition.meta,
-      internalContext
-    );
-  } finally {
-    setActiveContext(undefined);
+  const moduleExports = await moduleDefinition.setup(context!);
+  if (moduleExports === false) {
+    return config;
   }
+
+  config.resolved = {
+    options: context.options,
+    exports: moduleExports as R,
+    meta: context.meta,
+    hooks: (context as InternalModuleContext)._hooks,
+    disposed: false
+  };
 
   return config;
 }
@@ -95,32 +88,4 @@ async function resolveOptions<
   meta?: ModuleMeta
 ): Promise<T | undefined> {
   return typeof options === 'function' ? await options(meta) : options;
-}
-
-function createModuleContext<T extends ModuleOptions>(
-  meta?: ModuleMeta,
-  options?: T
-): ModuleContext<T> {
-  return {
-    meta: { ...meta },
-    options: options ?? ({} as T)
-  };
-}
-
-function createResolvedData<
-  T extends ModuleOptions,
-  R extends ModuleSetupReturn
->(
-  moduleExports: R | undefined,
-  resolvedOptions: T | undefined,
-  meta: ModuleMeta | undefined,
-  internalContext: ModuleInternalContext
-): ResolvedModule<T, R> {
-  return {
-    options: resolvedOptions,
-    exports: moduleExports,
-    meta: { ...meta, ...internalContext.meta },
-    hooks: internalContext.hooks,
-    disposed: false
-  };
 }

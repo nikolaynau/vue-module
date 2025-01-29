@@ -1,42 +1,70 @@
-import type { ModuleHookConfig, ModuleMeta } from './types';
+import type {
+  InternalModuleContext,
+  ModuleContext,
+  ModuleHookCallback,
+  ModuleHookConfig,
+  ModuleHookType,
+  ModuleMeta,
+  ModuleOptions
+} from './types';
 
-export interface ModuleInternalContext {
-  meta: ModuleMeta;
-  hooks: ModuleHookConfig[];
-}
+export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
+  meta?: ModuleMeta,
+  options?: T
+): ModuleContext<T> {
+  const _meta: ModuleMeta = { ...meta };
+  const _options = options ?? ({} as T);
+  const _hooks: ModuleHookConfig[] = [];
 
-let activeContext: ModuleInternalContext | undefined = undefined;
-export function setActiveContext(
-  context: ModuleInternalContext | undefined
-): void {
-  activeContext = context;
-}
+  function setName(name: string): void {
+    _meta.name = name;
+  }
 
-export function getActiveContext(): ModuleInternalContext | undefined {
-  return activeContext;
-}
+  function setVersion(version: string): void {
+    _meta.version = version;
+  }
 
-export function createInternalContext(): ModuleInternalContext {
-  return {
-    meta: {},
-    hooks: []
+  function setMeta(meta: ModuleMeta) {
+    Object.assign(_meta, meta);
+  }
+
+  function onInstalled(nameOrFn: unknown, fn?: unknown): void {
+    onHook('installed', nameOrFn, fn);
+  }
+
+  function onUninstall(nameOrFn: unknown, fn?: unknown): void {
+    onHook('uninstall', nameOrFn, fn);
+  }
+
+  function onHook(type: ModuleHookType, nameOrFn: unknown, fn?: unknown): void {
+    if (typeof nameOrFn === 'function') {
+      _hooks.push({
+        key: null,
+        type,
+        callback: nameOrFn as ModuleHookCallback
+      });
+    } else if (
+      (typeof nameOrFn === 'string' || Array.isArray(nameOrFn)) &&
+      typeof fn === 'function'
+    ) {
+      _hooks.push({
+        key: nameOrFn,
+        type,
+        callback: fn as ModuleHookCallback
+      });
+    }
+  }
+
+  const context: InternalModuleContext<T> = {
+    meta: _meta,
+    options: _options,
+    _hooks,
+    setName,
+    setVersion,
+    setMeta,
+    onInstalled,
+    onUninstall
   };
-}
 
-export function setVersion(version: string | undefined): void {
-  if (activeContext) {
-    activeContext.meta.version = version;
-  }
-}
-
-export function setName(name: string | undefined): void {
-  if (activeContext) {
-    activeContext.meta.name = name;
-  }
-}
-
-export function setMeta(meta: ModuleMeta): void {
-  if (activeContext) {
-    Object.assign(activeContext.meta, meta);
-  }
+  return context;
 }

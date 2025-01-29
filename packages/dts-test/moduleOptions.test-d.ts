@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { expectType, expectError } from 'tsd';
 import type { ModuleOptions } from '@vuemodule/core';
 

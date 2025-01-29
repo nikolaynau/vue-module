@@ -10,5 +10,11 @@ export default tseslint.config(
   eslintConfigPrettier,
   {
     ignores: ['dist/*', '**/dist']
+  },
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off'
+    }
   }
 );
