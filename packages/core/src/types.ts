@@ -101,9 +101,9 @@ export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
 
   setMeta(meta: ModuleMeta): void;
 
-  onInstalled: InstallHookCallback<T>;
+  onInstalled: InstallHook<T>;
 
-  onUninstall: UninstallHookCallback<T>;
+  onUninstall: UninstallHook<T>;
 }
 
 export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
@@ -111,7 +111,7 @@ export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
   _hooks: ModuleHookConfig[];
 }
 
-export interface InstallHookCallback<T extends ModuleOptions = ModuleOptions> {
+export interface InstallHook<T extends ModuleOptions = ModuleOptions> {
   <K extends string[]>(
     name: [...K],
     fn: ModuleHookCallback<{
@@ -137,9 +137,7 @@ export interface InstallHookCallback<T extends ModuleOptions = ModuleOptions> {
   (fn: ModuleHookCallback<ModuleConfig<T>>): void;
 }
 
-export interface UninstallHookCallback<
-  T extends ModuleOptions = ModuleOptions
-> {
+export interface UninstallHook<T extends ModuleOptions = ModuleOptions> {
   <K extends ModuleKey>(
     name: K,
     fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
