@@ -66,6 +66,7 @@ export interface ModuleConfig<
   enforce?: ModulePhase;
   deps?: ModuleDep[];
   resolved?: ResolvedModule<T, R>;
+  scope?: ModuleScope;
 }
 
 export type ModuleHookType = 'installed' | 'uninstall';
@@ -148,4 +149,10 @@ export interface UninstallHook<T extends ModuleOptions = ModuleOptions> {
   <T extends string>(name: T, fn: ModuleHookCallback<ModuleConfig>): void;
 
   (fn: ModuleHookCallback<ModuleConfig<T>>): void;
+}
+
+export interface ModuleList {}
+
+export interface ModuleScope {
+  modules: ModuleList;
 }

@@ -22,22 +22,22 @@ export interface ModuleInstance<
 export function createModule<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
->(config: ModuleLoadConfig<T, R>): ModuleInstance;
+>(config: ModuleLoadConfig<T, R>): ModuleInstance<T, R>;
 
 export function createModule<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
->(loader: ModuleLoader<T, R>): ModuleInstance;
+>(loader: ModuleLoader<T, R>): ModuleInstance<T, R>;
 
 export function createModule<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
->(loader: ModuleLoader<T, R>, options: T): ModuleInstance;
+>(loader: ModuleLoader<T, R>, options: T): ModuleInstance<T, R>;
 
 export function createModule<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
->(loader: ModuleLoader<T, R>, ...deps: ModuleDep[]): ModuleInstance;
+>(loader: ModuleLoader<T, R>, ...deps: ModuleDep[]): ModuleInstance<T, R>;
 
 export function createModule<
   T extends ModuleOptions = ModuleOptions,
