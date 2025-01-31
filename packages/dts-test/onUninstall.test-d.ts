@@ -1,6 +1,6 @@
 import { expectType, expectError } from 'tsd';
 import { defineModule } from '@vuemodule/core';
-import type { ModuleConfig, ModuleOptions } from '@vuemodule/core';
+import type { ModuleInstance, ModuleOptions } from '@vuemodule/core';
 import type { ModuleAReturn } from './moduleA';
 import './moduleB';
 
@@ -16,16 +16,16 @@ defineModule(({ onUninstall }) => {
   // No name, just a callback
   expectType<void>(onUninstall(() => {}));
 
-  onUninstall('moduleA', config => {
-    expectType<ModuleConfig<ModuleOptions, ModuleAReturn>>(config);
+  onUninstall('moduleA', instance => {
+    expectType<ModuleInstance<ModuleOptions, ModuleAReturn>>(instance);
   });
 
-  onUninstall('any', config => {
-    expectType<ModuleConfig>(config);
+  onUninstall('any', instance => {
+    expectType<ModuleInstance>(instance);
   });
 
-  onUninstall(config => {
-    expectType<ModuleConfig>(config);
+  onUninstall(instance => {
+    expectType<ModuleInstance>(instance);
   });
 
   // Error

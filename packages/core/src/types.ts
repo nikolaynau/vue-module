@@ -71,14 +71,21 @@ export interface ModuleConfig<
 
 export type ModuleHookType = 'installed' | 'uninstall';
 
-export type ModuleHookCallback<T = Arrayable<ModuleConfig>> = (
-  config: T
+export type ModuleHookCallback<T = Arrayable<ModuleInstance>> = (
+  module: T
 ) => Awaitable<any>;
 
-export interface ModuleHookConfig<> {
+export enum ModuleHookKey {
+  All = 'all',
+  Any = 'any'
+}
+
+export interface ModuleHookConfig {
   key: string | string[] | null;
   type: ModuleHookType;
   callback: ModuleHookCallback;
+  lock?: boolean;
+  called?: boolean;
 }
 
 export interface ResolvedModule<
@@ -118,41 +125,131 @@ export interface InstallHook<T extends ModuleOptions = ModuleOptions> {
     fn: ModuleHookCallback<{
       [P in keyof K]: ConditionalModuleType<
         K[P],
-        ModuleConfig<ModuleOptions, InferModuleValue<K[P]>>,
-        ModuleConfig
+        ModuleInstance<ModuleOptions, InferModuleValue<K[P]>>,
+        ModuleInstance
       >;
     }>
   ): void;
 
   <K extends ModuleKey>(
     name: K,
-    fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
+    fn: ModuleHookCallback<ModuleInstance<ModuleOptions, ModuleValue<K>>>
   ): void;
 
-  (name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
+  (name: 'any', fn: ModuleHookCallback<ModuleInstance>): void;
 
-  (name: 'all', fn: ModuleHookCallback<ModuleConfig[]>): void;
+  (name: 'all', fn: ModuleHookCallback<ModuleInstance[]>): void;
 
-  <T extends string>(name: T, fn: ModuleHookCallback<ModuleConfig>): void;
+  <T extends string>(name: T, fn: ModuleHookCallback<ModuleInstance>): void;
 
-  (fn: ModuleHookCallback<ModuleConfig<T>>): void;
+  (fn: ModuleHookCallback<ModuleInstance<T>>): void;
 }
 
 export interface UninstallHook<T extends ModuleOptions = ModuleOptions> {
   <K extends ModuleKey>(
     name: K,
-    fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
+    fn: ModuleHookCallback<ModuleInstance<ModuleOptions, ModuleValue<K>>>
   ): void;
 
-  (name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
+  (name: 'any', fn: ModuleHookCallback<ModuleInstance>): void;
 
-  <T extends string>(name: T, fn: ModuleHookCallback<ModuleConfig>): void;
+  <T extends string>(name: T, fn: ModuleHookCallback<ModuleInstance>): void;
 
-  (fn: ModuleHookCallback<ModuleConfig<T>>): void;
+  (fn: ModuleHookCallback<ModuleInstance<T>>): void;
 }
 
-export interface ModuleList {}
+export interface ModuleState<
+  T extends ModuleOptions = ModuleOptions,
+  R extends ModuleSetupReturn = ModuleSetupReturn
+> {
+  readonly config: ModuleConfig<T, R>;
+  readonly meta: ResolvedModule<T, R>['meta'];
+  readonly name: ModuleMeta['name'];
+  readonly version: ModuleMeta['version'];
+  readonly exports: ResolvedModule<T, R>['exports'];
+  readonly options: ResolvedModule<T, R>['options'];
+  readonly hooks: ResolvedModule<T, R>['hooks'] | undefined;
+  readonly scope: ModuleConfig<T, R>['scope'];
+  readonly isInstalled: boolean;
+}
+
+export interface ModuleInstance<
+  T extends ModuleOptions = ModuleOptions,
+  R extends ModuleSetupReturn = ModuleSetupReturn
+> extends ModuleState<T, R> {
+  install(): Promise<void>;
+  uninstall(): Promise<void>;
+}
+
+export interface ModuleManager {
+  readonly size: number;
+  readonly isEmpty: boolean;
+
+  setScope(scope: ModuleScope): void;
+  getScope(): ModuleScope | undefined;
+
+  toArray(): ModuleInstance[];
+  toMap(): Map<string, ModuleInstance>;
+
+  get<K extends ModuleKey>(
+    name: K
+  ): ModuleInstance<ModuleOptions, ModuleValue<K>> | undefined;
+  get(name: string): ModuleInstance | undefined;
+  get<T extends ModuleOptions, R extends ModuleSetupReturn>(
+    config: ModuleConfig<T, R>
+  ): ModuleInstance<T, R> | undefined;
+  get<T extends ModuleOptions, R extends ModuleSetupReturn>(
+    instance: ModuleInstance<T, R>
+  ): ModuleInstance<T, R> | undefined;
+
+  getAt(index: number): ModuleInstance | undefined;
+
+  add<T extends ModuleOptions, R extends ModuleSetupReturn>(
+    instance: ModuleInstance<T, R>
+  ): ModuleInstance<T, R>;
+
+  remove<K extends ModuleKey>(
+    name: K
+  ): ModuleInstance<ModuleOptions, ModuleValue<K>> | undefined;
+  remove(name: string): ModuleInstance | undefined;
+  remove(config: ModuleConfig): ModuleInstance | undefined;
+  remove(instance: ModuleInstance): ModuleInstance | undefined;
+
+  removeAll(): void;
+
+  has(name: ModuleKey): boolean;
+  has(name: string): boolean;
+  has(config: ModuleConfig<any, any>): boolean;
+  has(instance: ModuleInstance<any, any>): boolean;
+
+  isInstalled(): boolean;
+  isInstalled(config: ModuleConfig): boolean;
+  isInstalled(name: ModuleKey): boolean;
+  isInstalled(name: string): boolean;
+
+  install(instance: ModuleInstance): Promise<void>;
+
+  uninstall(config: ModuleConfig): Promise<void>;
+  uninstall(name: ModuleKey): Promise<void>;
+  uninstall(name: string): Promise<void>;
+  uninstall(instance: ModuleInstance): Promise<void>;
+
+  bulkInstall(
+    filter?: (instance: ModuleInstance) => boolean,
+    options?: ModuleExecutionOptions
+  ): Promise<void>;
+  bulkUninstall(
+    filter?: (instance: ModuleInstance) => boolean,
+    options?: ModuleExecutionOptions
+  ): Promise<void>;
+}
 
 export interface ModuleScope {
-  modules: ModuleList;
+  modules: ModuleManager;
+}
+
+export interface ModuleExecutionOptions {
+  parallel?: boolean;
+  suppressErrors?: boolean;
+  errors?: Error[];
 }

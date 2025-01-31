@@ -1,7 +1,7 @@
 import { expectType, expectError } from 'tsd';
 import { defineModule } from '@vuemodule/core';
 import type {
-  ModuleConfig,
+  ModuleInstance,
   ModuleKey,
   ModuleKeys,
   ModuleOptions,
@@ -28,28 +28,30 @@ defineModule(({ onInstalled }) => {
   // No name, just a callback
   expectType<void>(onInstalled(() => {}));
 
-  onInstalled('moduleA', config => {
-    expectType<ModuleConfig<ModuleOptions, ModuleAReturn>>(config);
+  onInstalled('moduleA', instance => {
+    expectType<ModuleInstance<ModuleOptions, ModuleAReturn>>(instance);
   });
 
-  onInstalled('any', config => {
-    expectType<ModuleConfig>(config);
+  onInstalled('any', instance => {
+    expectType<ModuleInstance>(instance);
   });
 
-  onInstalled('all', config => {
-    expectType<ModuleConfig[]>(config);
+  onInstalled('all', instance => {
+    expectType<ModuleInstance[]>(instance);
   });
 
-  onInstalled(config => {
-    expectType<ModuleConfig>(config);
+  onInstalled(instance => {
+    expectType<ModuleInstance>(instance);
   });
 
   onInstalled(
     ['moduleA', 'customModule', 'moduleB'],
     ([moduleA, customModule, moduleB]) => {
-      expectType<ModuleConfig<ModuleOptions, ModuleAReturn>>(moduleA);
-      expectType<ModuleConfig>(customModule);
-      expectType<ModuleConfig<ModuleOptions, ModuleValue<'moduleB'>>>(moduleB);
+      expectType<ModuleInstance<ModuleOptions, ModuleAReturn>>(moduleA);
+      expectType<ModuleInstance>(customModule);
+      expectType<ModuleInstance<ModuleOptions, ModuleValue<'moduleB'>>>(
+        moduleB
+      );
     }
   );
 

@@ -81,6 +81,12 @@ importers:
         specifier: workspace:*
         version: link:../core
 
+  packages/e2e-test:
+    dependencies:
+      '@vuemodule/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/playground:
     dependencies:
       '@vuemodule/core':

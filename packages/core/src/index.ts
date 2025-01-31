@@ -1,4 +1,5 @@
 export * from './types';
-export * from './define';
-export * from './module';
-export * from './loader';
+
+export { defineModule } from './define';
+
+export { createModule } from './modules';
