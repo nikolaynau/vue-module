@@ -229,7 +229,7 @@ describe('invokeSpecifiedKeyArrayHooks', () => {
       } as ModuleManager
     };
 
-    await invokeSpecifiedKeyArrayHooks(target, source, scope, TEST_HOOK_TYPE);
+    await invokeSpecifiedKeyArrayHooks(source, target, scope, TEST_HOOK_TYPE);
 
     expect(callback).toHaveBeenCalledWith([moduleA, moduleB]);
   });
@@ -257,7 +257,7 @@ describe('invokeSpecifiedKeyArrayHooks', () => {
       } as ModuleManager
     };
 
-    await invokeSpecifiedKeyArrayHooks(target, source, scope, TEST_HOOK_TYPE);
+    await invokeSpecifiedKeyArrayHooks(source, target, scope, TEST_HOOK_TYPE);
 
     expect(callback).not.toHaveBeenCalled();
   });
@@ -275,7 +275,7 @@ describe('invokeSpecifiedKeyArrayHooks', () => {
     const source = {} as ModuleInstance;
     const scope = createTestScope();
 
-    await invokeSpecifiedKeyArrayHooks(target, source, scope, TEST_HOOK_TYPE);
+    await invokeSpecifiedKeyArrayHooks(source, target, scope, TEST_HOOK_TYPE);
 
     expect(callback).not.toHaveBeenCalled();
   });
@@ -563,8 +563,8 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
     const errors: Error[] = [];
 
     await invokeSpecifiedKeyArrayHooks(
-      target,
       source,
+      target,
       scope,
       TEST_HOOK_TYPE,
       true,

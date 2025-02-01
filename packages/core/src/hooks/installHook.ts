@@ -45,8 +45,8 @@ async function invokeDependentHooks(
       errors
     );
     await invokeSpecifiedKeyArrayHooks(
-      depModule,
       currentModule,
+      depModule,
       scope,
       hookType,
       suppressErrors,

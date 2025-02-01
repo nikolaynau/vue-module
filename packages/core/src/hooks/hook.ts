@@ -79,8 +79,8 @@ export async function invokeSpecifiedKeyHooks(
 }
 
 export async function invokeSpecifiedKeyArrayHooks(
-  target: ModuleInstance,
   source: ModuleInstance,
+  target: ModuleInstance,
   scope: ModuleScope,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
