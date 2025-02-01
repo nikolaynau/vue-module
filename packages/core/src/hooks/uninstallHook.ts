@@ -43,8 +43,8 @@ async function invokeDependentHooks(
       errors
     );
     await invokeAnyKeyHooks(
-      depModule,
       currentModule,
+      depModule,
       hookType,
       suppressErrors,
       errors

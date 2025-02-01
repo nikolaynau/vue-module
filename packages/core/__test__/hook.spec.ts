@@ -129,7 +129,7 @@ describe('invokeAnyKeyHooks', () => {
     const target = { hooks: [hook] } as ModuleInstance;
     const source = { name: 'source' } as ModuleInstance;
 
-    await invokeAnyKeyHooks(target, source, TEST_HOOK_TYPE);
+    await invokeAnyKeyHooks(source, target, TEST_HOOK_TYPE);
 
     expect(callback).toHaveBeenCalledWith(source);
   });
@@ -146,7 +146,7 @@ describe('invokeAnyKeyHooks', () => {
     const target = { hooks: [hook] } as ModuleInstance;
     const source = { name: 'source' } as ModuleInstance;
 
-    await invokeAnyKeyHooks(target, source, TEST_HOOK_TYPE);
+    await invokeAnyKeyHooks(source, target, TEST_HOOK_TYPE);
 
     expect(callback).not.toHaveBeenCalled();
   });
@@ -499,7 +499,7 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
 
     const errors: Error[] = [];
 
-    await invokeAnyKeyHooks(target, source, TEST_HOOK_TYPE, true, errors);
+    await invokeAnyKeyHooks(source, target, TEST_HOOK_TYPE, true, errors);
 
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);

@@ -43,8 +43,8 @@ export async function invokeAllKeyHooks(
 }
 
 export async function invokeAnyKeyHooks(
-  target: ModuleInstance,
   source: ModuleInstance,
+  target: ModuleInstance,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
