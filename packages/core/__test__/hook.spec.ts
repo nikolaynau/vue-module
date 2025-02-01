@@ -165,7 +165,7 @@ describe('invokeSpecifiedKeyHooks', () => {
     const target = { hooks: [hook] } as ModuleInstance;
     const source = { name: 'moduleA' } as ModuleInstance;
 
-    await invokeSpecifiedKeyHooks(target, source, TEST_HOOK_TYPE);
+    await invokeSpecifiedKeyHooks(source, target, TEST_HOOK_TYPE);
 
     expect(callback).toHaveBeenCalledWith(source);
   });
@@ -182,7 +182,7 @@ describe('invokeSpecifiedKeyHooks', () => {
     const target = { hooks: [hook] } as ModuleInstance;
     const source = {} as ModuleInstance;
 
-    await invokeSpecifiedKeyHooks(target, source, TEST_HOOK_TYPE);
+    await invokeSpecifiedKeyHooks(source, target, TEST_HOOK_TYPE);
 
     expect(callback).not.toHaveBeenCalled();
   });
@@ -199,7 +199,7 @@ describe('invokeSpecifiedKeyHooks', () => {
     const target = { hooks: [hook] } as ModuleInstance;
     const source = { name: 'not-string' } as ModuleInstance;
 
-    await invokeSpecifiedKeyHooks(target, source, TEST_HOOK_TYPE);
+    await invokeSpecifiedKeyHooks(source, target, TEST_HOOK_TYPE);
 
     expect(callback).not.toHaveBeenCalled();
   });
@@ -526,7 +526,7 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
 
     const errors: Error[] = [];
 
-    await invokeSpecifiedKeyHooks(target, source, TEST_HOOK_TYPE, true, errors);
+    await invokeSpecifiedKeyHooks(source, target, TEST_HOOK_TYPE, true, errors);
 
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);
