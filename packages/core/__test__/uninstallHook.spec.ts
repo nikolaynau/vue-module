@@ -12,15 +12,15 @@ describe('callUninstallHook', () => {
     vi.restoreAllMocks();
   });
 
-  it('should return an empty error array if the module is not installed', async () => {
+  it('should return undefined if the module is not installed', async () => {
     const spyNull = vi.spyOn(hookModule, 'invokeNullKeyHooks');
 
     const moduleInstance = {
       isInstalled: false
     } as ModuleInstance;
 
-    const errors = await callUninstallHook(moduleInstance);
-    expect(errors).toEqual([]);
+    const result = await callUninstallHook(moduleInstance);
+    expect(result).toBeUndefined();
     expect(spyNull).not.toHaveBeenCalled();
   });
 
@@ -40,14 +40,13 @@ describe('callUninstallHook', () => {
       scope: undefined
     } as ModuleInstance;
 
-    const errors = await callUninstallHook(moduleInstance);
-    expect(errors).toEqual([]);
+    await callUninstallHook(moduleInstance);
 
     expect(spyNull).toHaveBeenCalledWith(
       moduleInstance,
       'uninstall',
       false,
-      expect.any(Array)
+      undefined
     );
     expect(spySpecified).not.toHaveBeenCalled();
     expect(spyAny).not.toHaveBeenCalled();
@@ -76,14 +75,13 @@ describe('callUninstallHook', () => {
       scope
     } as ModuleInstance;
 
-    const errors = await callUninstallHook(moduleInstance);
-    expect(errors).toEqual([]);
+    await callUninstallHook(moduleInstance);
 
     expect(spyNull).toHaveBeenCalledWith(
       moduleInstance,
       'uninstall',
       false,
-      expect.any(Array)
+      undefined
     );
 
     expect(spySpecified).toHaveBeenCalledWith(
@@ -91,14 +89,14 @@ describe('callUninstallHook', () => {
       depModule,
       'uninstall',
       false,
-      expect.any(Array)
+      undefined
     );
     expect(spyAny).toHaveBeenCalledWith(
       moduleInstance,
       depModule,
       'uninstall',
       false,
-      expect.any(Array)
+      undefined
     );
   });
 
@@ -119,8 +117,8 @@ describe('callUninstallHook', () => {
   it('should collect errors in the errors array when suppressErrors is true', async () => {
     const testError = new Error('Test suppressed error');
     vi.spyOn(hookModule, 'invokeNullKeyHooks').mockImplementation(
-      async (moduleInstance, hookType, suppressErrors, errors) => {
-        errors?.push(testError);
+      async (moduleInstance, hookType, suppressErrors, _errors) => {
+        _errors?.push(testError);
       }
     );
 
@@ -129,7 +127,8 @@ describe('callUninstallHook', () => {
       scope: undefined
     } as ModuleInstance;
 
-    const errors = await callUninstallHook(moduleInstance, true);
-    expect(errors).toContain(testError);
+    const errors: Error[] = [];
+    await callUninstallHook(moduleInstance, true, errors);
+    expect(errors).toEqual([testError]);
   });
 });

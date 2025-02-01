@@ -5,11 +5,13 @@ import type {
   ModuleConfig,
   ModuleScope,
   ModuleMeta,
-  ModuleHookConfig
+  ModuleHookConfig,
+  ModuleExecutionOptions
 } from '../types';
 import { callInstallHook, callUninstallHook } from '../hooks';
 import { loadModule } from '../loader';
 import { isModuleInstalled, disposeModule } from '../module';
+import { handlePromises } from '../promise';
 
 export class ModuleClass<
   T extends ModuleOptions = ModuleOptions,
@@ -54,17 +56,27 @@ export class ModuleClass<
     return isModuleInstalled(this._config);
   }
 
-  public async install(): Promise<void> {
+  public async install(
+    executionOptions: Omit<ModuleExecutionOptions, 'parallel'> = {}
+  ): Promise<void> {
     if (!this.isInstalled) {
-      await loadModule(this._config);
-      await callInstallHook(this);
+      const { suppressErrors = false, errors = [] } = executionOptions;
+      await handlePromises(loadModule(this._config), executionOptions);
+      if (!suppressErrors || (suppressErrors && errors.length === 0)) {
+        await callInstallHook(this, suppressErrors, errors);
+      }
     }
   }
 
-  public async uninstall(): Promise<void> {
+  public async uninstall(
+    executionOptions: Omit<ModuleExecutionOptions, 'parallel'> = {}
+  ): Promise<void> {
     if (this.isInstalled) {
-      await callUninstallHook(this);
-      disposeModule(this._config);
+      const { suppressErrors = false, errors = [] } = executionOptions;
+      await callUninstallHook(this, suppressErrors, errors);
+      if (!suppressErrors || (suppressErrors && errors.length === 0)) {
+        disposeModule(this._config);
+      }
     }
   }
 }

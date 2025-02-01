@@ -12,16 +12,16 @@ describe('callInstallHook', () => {
     vi.restoreAllMocks();
   });
 
-  it('should return an empty error array if the module is not installed', async () => {
+  it('should return undefined if the module is not installed', async () => {
     const spyNull = vi.spyOn(hookModule, 'invokeNullKeyHooks');
 
     const moduleInstance = {
       isInstalled: false
     } as ModuleInstance;
 
-    const errors = await callInstallHook(moduleInstance);
+    const result = await callInstallHook(moduleInstance);
 
-    expect(errors).toEqual([]);
+    expect(result).toBeUndefined();
     expect(spyNull).not.toHaveBeenCalled();
   });
 
@@ -47,9 +47,8 @@ describe('callInstallHook', () => {
       scope: undefined
     } as ModuleInstance;
 
-    const errors = await callInstallHook(moduleInstance);
+    await callInstallHook(moduleInstance);
 
-    expect(errors).toEqual([]);
     expect(spyNull).toHaveBeenCalledTimes(1);
     expect(spySpecified).not.toHaveBeenCalled();
     expect(spySpecifiedArray).not.toHaveBeenCalled();
@@ -90,22 +89,20 @@ describe('callInstallHook', () => {
       scope
     } as ModuleInstance;
 
-    const errors = await callInstallHook(moduleInstance);
-
-    expect(errors).toEqual([]);
+    await callInstallHook(moduleInstance);
 
     expect(spyNull).toHaveBeenCalledWith(
       moduleInstance,
       'installed',
       false,
-      expect.any(Array)
+      undefined
     );
     expect(spySpecified).toHaveBeenCalledWith(
       moduleInstance,
       dependentModule,
       'installed',
       false,
-      expect.any(Array)
+      undefined
     );
     expect(spySpecifiedArray).toHaveBeenCalledWith(
       moduleInstance,
@@ -113,21 +110,21 @@ describe('callInstallHook', () => {
       scope,
       'installed',
       false,
-      expect.any(Array)
+      undefined
     );
     expect(spyAny).toHaveBeenCalledWith(
       moduleInstance,
       dependentModule,
       'installed',
       false,
-      expect.any(Array)
+      undefined
     );
     expect(spyAll).toHaveBeenCalledWith(
       dependentModule,
       scope,
       'installed',
       false,
-      expect.any(Array)
+      undefined
     );
   });
 
@@ -146,8 +143,8 @@ describe('callInstallHook', () => {
   it('should collect errors in the errors array when suppressErrors is true', async () => {
     const testError = new Error('Test suppressed error');
     vi.spyOn(hookModule, 'invokeNullKeyHooks').mockImplementation(
-      async (moduleInstance, hookType, suppressErrors, errors) => {
-        errors?.push(testError);
+      async (moduleInstance, hookType, suppressErrors, _errors) => {
+        _errors?.push(testError);
       }
     );
 
@@ -156,7 +153,8 @@ describe('callInstallHook', () => {
       scope: undefined
     } as ModuleInstance;
 
-    const errors = await callInstallHook(moduleInstance, true);
-    expect(errors).toContain(testError);
+    const errors: Error[] = [];
+    await callInstallHook(moduleInstance, true, errors);
+    expect(errors).toEqual([testError]);
   });
 });
