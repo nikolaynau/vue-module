@@ -17,8 +17,8 @@ export async function callUninstallHook(
   const errors: Error[] = [];
   const hookType: ModuleHookType = 'uninstall';
 
-  await invokeNullKeyHooks(moduleInstance, hookType, errors, suppressErrors);
-  await invokeDependentHooks(moduleInstance, hookType, errors, suppressErrors);
+  await invokeNullKeyHooks(moduleInstance, hookType, suppressErrors, errors);
+  await invokeDependentHooks(moduleInstance, hookType, suppressErrors, errors);
 
   return errors;
 }
@@ -26,8 +26,8 @@ export async function callUninstallHook(
 async function invokeDependentHooks(
   currentModule: ModuleInstance,
   hookType: ModuleHookType,
-  errors: Error[],
-  suppressErrors: boolean
+  suppressErrors: boolean,
+  errors: Error[]
 ) {
   const scope = currentModule.scope;
   if (!scope) {
@@ -39,15 +39,15 @@ async function invokeDependentHooks(
       depModule,
       currentModule,
       hookType,
-      errors,
-      suppressErrors
+      suppressErrors,
+      errors
     );
     await invokeAnyKeyHooks(
       depModule,
       currentModule,
       hookType,
-      errors,
-      suppressErrors
+      suppressErrors,
+      errors
     );
   }
 }

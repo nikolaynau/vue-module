@@ -19,8 +19,8 @@ export async function callInstallHook(
   const errors: Error[] = [];
   const hookType: ModuleHookType = 'installed';
 
-  await invokeNullKeyHooks(moduleInstance, hookType, errors, suppressErrors);
-  await invokeDependentHooks(moduleInstance, hookType, errors, suppressErrors);
+  await invokeNullKeyHooks(moduleInstance, hookType, suppressErrors, errors);
+  await invokeDependentHooks(moduleInstance, hookType, suppressErrors, errors);
 
   return errors;
 }
@@ -28,8 +28,8 @@ export async function callInstallHook(
 async function invokeDependentHooks(
   currentModule: ModuleInstance,
   hookType: ModuleHookType,
-  errors: Error[],
-  suppressErrors: boolean
+  suppressErrors: boolean,
+  errors: Error[]
 ) {
   const scope = currentModule.scope;
   if (!scope) {
@@ -41,24 +41,24 @@ async function invokeDependentHooks(
       depModule,
       currentModule,
       hookType,
-      errors,
-      suppressErrors
+      suppressErrors,
+      errors
     );
     await invokeSpecifiedKeyArrayHooks(
       depModule,
       currentModule,
       scope,
       hookType,
-      errors,
-      suppressErrors
+      suppressErrors,
+      errors
     );
     await invokeAnyKeyHooks(
       depModule,
       currentModule,
       hookType,
-      errors,
-      suppressErrors
+      suppressErrors,
+      errors
     );
-    await invokeAllKeyHooks(depModule, scope, hookType, errors, suppressErrors);
+    await invokeAllKeyHooks(depModule, scope, hookType, suppressErrors, errors);
   }
 }
