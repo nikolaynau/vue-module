@@ -1,15 +1,9 @@
-import type { ModuleInstance, ModuleManager, ModuleScope } from '../types';
+import type { ModuleInstance, ModuleManager } from '../types';
 import { createScope } from './createScope';
 import { ModuleManagerClass } from './moduleManager';
 
-export function createModules(
-  modules: ModuleInstance[],
-  scope?: ModuleScope
-): ModuleManager {
+export function createModules(modules: ModuleInstance[]): ModuleManager {
   const manager = new ModuleManagerClass(modules);
-  if (!scope) {
-    scope = createScope(manager);
-  }
-  manager.setScope(scope);
+  manager.setScope(createScope(manager));
   return manager;
 }
