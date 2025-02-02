@@ -6,7 +6,7 @@ import type {
   ModuleScope,
   ModuleMeta,
   ModuleHookConfig,
-  ModuleExecutionOptions
+  ModuleErrorHandlingOptions
 } from '../types';
 import { callInstallHook, callUninstallHook } from '../hooks';
 import { loadModule } from '../loader';
@@ -57,7 +57,7 @@ export class ModuleClass<
   }
 
   public async install(
-    executionOptions: Omit<ModuleExecutionOptions, 'parallel'> = {}
+    executionOptions: ModuleErrorHandlingOptions = {}
   ): Promise<void> {
     if (!this.isInstalled) {
       const { suppressErrors = false, errors = [] } = executionOptions;
@@ -69,7 +69,7 @@ export class ModuleClass<
   }
 
   public async uninstall(
-    executionOptions: Omit<ModuleExecutionOptions, 'parallel'> = {}
+    executionOptions: ModuleErrorHandlingOptions = {}
   ): Promise<void> {
     if (this.isInstalled) {
       const { suppressErrors = false, errors = [] } = executionOptions;

@@ -253,3 +253,8 @@ export interface ModuleExecutionOptions {
   suppressErrors?: boolean;
   errors?: Error[];
 }
+
+export type ModuleErrorHandlingOptions = Omit<
+  ModuleExecutionOptions,
+  'parallel'
+>;
