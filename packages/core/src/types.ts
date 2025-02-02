@@ -177,6 +177,9 @@ export interface ModuleInstance<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
 > extends ModuleState<T, R> {
+  ignoreHookErrors: boolean;
+  hookErrors: Error[];
+
   install(): Promise<void>;
   uninstall(): Promise<void>;
 }

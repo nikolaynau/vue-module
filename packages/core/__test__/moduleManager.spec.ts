@@ -40,7 +40,9 @@ function createTestModule(name: string, installed = false): ModuleInstance {
     exports: undefined,
     options: undefined,
     hooks: undefined,
-    scope: undefined
+    scope: undefined,
+    ignoreHookErrors: false,
+    hookErrors: []
   };
   return instance;
 }

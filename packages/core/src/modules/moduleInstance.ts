@@ -5,19 +5,21 @@ import type {
   ModuleConfig,
   ModuleScope,
   ModuleMeta,
-  ModuleHookConfig,
-  ModuleErrorHandlingOptions
+  ModuleHookConfig
 } from '../types';
 import { callInstallHook, callUninstallHook } from '../hooks';
 import { loadModule } from '../loader';
 import { isModuleInstalled, disposeModule } from '../module';
-import { handlePromises } from '../promise';
 
 export class ModuleClass<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
 > implements ModuleInstance<T, R>
 {
+  public ignoreHookErrors: boolean = false;
+
+  public hookErrors: Error[] = [];
+
   constructor(private _config: ModuleConfig<T, R>) {}
 
   public get config(): ModuleConfig<T, R> {
@@ -56,27 +58,17 @@ export class ModuleClass<
     return isModuleInstalled(this._config);
   }
 
-  public async install(
-    executionOptions: ModuleErrorHandlingOptions = {}
-  ): Promise<void> {
+  public async install(): Promise<void> {
     if (!this.isInstalled) {
-      const { suppressErrors = false, errors = [] } = executionOptions;
-      await handlePromises(loadModule(this._config), executionOptions);
-      if (!suppressErrors || (suppressErrors && errors.length === 0)) {
-        await callInstallHook(this, suppressErrors, errors);
-      }
+      await loadModule(this._config);
+      await callInstallHook(this, this.ignoreHookErrors, this.hookErrors);
     }
   }
 
-  public async uninstall(
-    executionOptions: ModuleErrorHandlingOptions = {}
-  ): Promise<void> {
+  public async uninstall(): Promise<void> {
     if (this.isInstalled) {
-      const { suppressErrors = false, errors = [] } = executionOptions;
-      await callUninstallHook(this, suppressErrors, errors);
-      if (!suppressErrors || (suppressErrors && errors.length === 0)) {
-        disposeModule(this._config);
-      }
+      await callUninstallHook(this, this.ignoreHookErrors, this.hookErrors);
+      disposeModule(this._config);
     }
   }
 }

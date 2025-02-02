@@ -142,17 +142,18 @@ describe('ModuleClass', () => {
       const errors: Error[] = [];
 
       const error = new Error('load error');
-      mockLoadModule.mockImplementation(() => {
+      mockCallInstallHook.mockImplementation(() => {
         errors.push(error);
       });
 
-      await expect(
-        moduleInstance.install({ suppressErrors: true, errors })
-      ).resolves.not.toThrow();
+      moduleInstance.ignoreHookErrors = true;
+      moduleInstance.hookErrors = errors;
+
+      await expect(moduleInstance.install()).resolves.not.toThrow();
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe('load error');
-      expect(mockCallInstallHook).not.toHaveBeenCalled();
+      expect(mockLoadModule).toHaveBeenCalled();
     });
   });
 
@@ -195,9 +196,10 @@ describe('ModuleClass', () => {
         errors.push(error);
       });
 
-      await expect(
-        moduleInstance.uninstall({ suppressErrors: true, errors })
-      ).resolves.not.toThrow();
+      moduleInstance.ignoreHookErrors = true;
+      moduleInstance.hookErrors = errors;
+
+      await expect(moduleInstance.uninstall()).resolves.not.toThrow();
 
       expect(errors).toHaveLength(1);
       expect(errors[0].message).toBe('uninstall error');
@@ -206,7 +208,7 @@ describe('ModuleClass', () => {
         true,
         errors
       );
-      expect(mockDisposeModule).not.toHaveBeenCalled();
+      expect(mockDisposeModule).toHaveBeenCalledWith(moduleInstance.config);
     });
   });
 });
