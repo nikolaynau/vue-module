@@ -16,8 +16,8 @@ export function isModuleDisposed(config: ModuleConfig<any, any>): boolean {
 export function isModuleLoader<
   T extends ModuleOptions,
   R extends ModuleSetupReturn
->(input: unknown): input is ModuleLoader<T, R> {
-  return typeof input === 'function';
+>(value: unknown): value is ModuleLoader<T, R> {
+  return typeof value === 'function';
 }
 
 export function disposeModule(config: ModuleConfig<any, any>): void {

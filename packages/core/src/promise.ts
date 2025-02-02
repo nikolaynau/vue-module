@@ -1,20 +1,16 @@
-export interface HandlePromisesOptions {
-  parallel?: boolean;
-  suppressErrors?: boolean;
-  errors?: Error[];
-}
+import type { ModuleExecutionOptions } from './types';
 
 export async function handlePromises<T>(
   promise: Promise<T>,
-  options?: HandlePromisesOptions
+  options?: ModuleExecutionOptions
 ): Promise<T>;
 export async function handlePromises<T>(
   promises: Promise<T>[],
-  options?: HandlePromisesOptions
+  options?: ModuleExecutionOptions
 ): Promise<T[]>;
 export async function handlePromises<T>(
   promises: Promise<T> | Promise<T>[],
-  options: HandlePromisesOptions = {}
+  options: ModuleExecutionOptions = {}
 ): Promise<T | T[]> {
   const { parallel = false, suppressErrors = false, errors = [] } = options;
 

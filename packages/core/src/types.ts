@@ -248,13 +248,11 @@ export interface ModuleScope {
   modules: ModuleManager;
 }
 
-export interface ModuleExecutionOptions {
-  parallel?: boolean;
+export interface ModuleErrorHandlingOptions {
   suppressErrors?: boolean;
   errors?: Error[];
 }
 
-export type ModuleErrorHandlingOptions = Omit<
-  ModuleExecutionOptions,
-  'parallel'
->;
+export interface ModuleExecutionOptions extends ModuleErrorHandlingOptions {
+  parallel?: boolean;
+}
