@@ -1,16 +1,16 @@
 # @vuemodule/core [![npm version](https://img.shields.io/npm/v/@vuemodule/core.svg)](https://npmjs.org/package/@vuemodule/core) [![npm downloads](https://img.shields.io/npm/dm/@vuemodule/core.svg)](https://npmjs.org/package/@vuemodule/core)
 
-> Core library for Vue Module, enabling dynamic module loading in Vue applications using dynamic imports.
+> Core library for Vue Module, enabling dynamic module loading in Vue applications using async dynamic imports.
 
 [Documentation & Demo](https://vuemodule.org)
 
 ## Installation
 
 ```bash
-# NPM
+# npm
 $ npm install @vuemodule/core
 
-# Yarn
+# yarn
 $ yarn add @vuemodule/core
 
 # pnpm
@@ -19,57 +19,64 @@ $ pnpm add @vuemodule/core
 
 ## Usage
 
-moduleA.ts
+### Defining a Module
+
+#### moduleA.ts
 
 A module with input options and a return value:
 
 ```ts
 import { defineModule } from '@vuemodule/core';
 
-export interface ModuleAOptions {
+export interface ModuleOptions {
   foo: string;
 }
 
-export interface ModuleAReturn {
+export interface ModuleReturn {
   bar: string;
 }
 
 declare module '@vuemodule/core' {
   interface ModuleMap {
-    moduleA: ModuleAReturn;
+    moduleA: ModuleReturn;
   }
 }
 
-export default defineModule<ModuleAOptions, ModuleAReturn>('moduleA', ctx => {
-  console.log(ctx.options); // { foo: 'value' }
+export default defineModule<ModuleOptions, ModuleReturn>(
+  'moduleA',
+  ({ options }) => {
+    console.log(options); // { foo: 'value' }
 
-  return {
-    bar: 'baz'
-  };
-});
+    return {
+      bar: 'baz'
+    };
+  }
+);
 ```
 
-moduleB.ts
+### Using Hooks
+
+#### moduleB.ts
 
 A module using hooks to interact with another module:
 
 ```ts
 import { defineModule } from '@vuemodule/core';
 
-export default defineModule(ctx => {
-  ctx.onInstalled('moduleA', moduleA => {
-    const { resolved } = moduleA;
-    console.log(resolved?.exports?.bar); // 'baz';
+export default defineModule(({ onInstalled, onUninstall }) => {
+  onInstalled('moduleA', moduleA => {
+    console.log(moduleA.exports); // { bar: 'baz' };
   });
 
-  ctx.onUninstall('moduleA', moduleA => {
-    const { resolved } = moduleA;
-    console.log(resolved?.exports?.bar); // 'baz';
+  onUninstall('moduleA', moduleA => {
+    console.log(moduleA.exports); // { bar: 'baz' };
   });
 });
 ```
 
-main.ts
+### Installing Modules
+
+#### main.ts
 
 Example of using a single module:
 
@@ -81,40 +88,30 @@ const moduleA = createModule(() => import('./moduleA'), { foo: 'bar' });
 // Install the module
 await moduleA.install();
 
-// Access module configuration and exports
-const { resolved } = moduleA.config;
-console.log(resolved.exports); // The object returned by the module's setup function
+console.log(moduleA.exports); // The object returned by the module's setup function
 
 // Uninstall the module
 await moduleA.uninstall();
 ```
 
-main.ts
+### Managing Multiple Modules
+
+#### main.ts
 
 Example of using multiple modules with called hooks:
 
 ```ts
-import { createModules } from '@vuemodule/core';
+import { createModules, createModule } from '@vuemodule/core';
 
 const modules = createModules([
-  [() => import('./moduleA'), { foo: 'bar' }],
-  () => import('./moduleB')
+  createModule(() => import('./moduleA'), { foo: 'bar' }),
+  createModule(() => import('./moduleB'))
 ]);
 
 // Install all modules
 await modules.install();
 
-// Install moduleA
-await modules[0].install();
-
-// Install moduleB
-await modules[1].install();
-
-// Access module configuration and exports
-const { resolved } = modules.moduleA; // moduleA
-console.log(resolved.exports); // The object returned by the module's setup function
-
-// const { resolved } = modules.unnamed[0]; // moduleB
+console.log(modules.get('moduleA').exports); // The object returned by the module's setup function
 
 // Uninstall all modules
 await modules.uninstall();
