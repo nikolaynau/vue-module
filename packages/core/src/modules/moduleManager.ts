@@ -3,6 +3,7 @@ import type {
   ModuleExecutionOptions,
   ModuleInstance,
   ModuleManager,
+  ModuleEnforce,
   ModuleScope
 } from '../types';
 import { handlePromises } from '../promise';
@@ -51,7 +52,7 @@ export class ModuleManagerClass implements ModuleManager {
     if (this._isInstance(value)) {
       return this.has(value) ? value : undefined;
     }
-    return this._getByConfig(value as ModuleConfig);
+    return this._getForConfig(value as ModuleConfig);
   }
 
   public getAt(index: number): ModuleInstance | undefined {
@@ -65,7 +66,7 @@ export class ModuleManagerClass implements ModuleManager {
     if (this._isInstance(arg)) {
       return this._modules.includes(arg);
     }
-    return Boolean(this._getByConfig(arg as ModuleConfig));
+    return Boolean(this._getForConfig(arg as ModuleConfig));
   }
 
   public add(instance: ModuleInstance<any, any>): ModuleInstance<any, any> {
@@ -95,14 +96,13 @@ export class ModuleManagerClass implements ModuleManager {
       : this._modules.every(m => m.isInstalled);
   }
 
-  public async bulkInstall(
+  public bulkInstall(
     filter?: (instance: ModuleInstance) => boolean,
     options?: ModuleExecutionOptions
   ): Promise<void> {
-    await handlePromises(
-      (filter ? this._modules.filter(filter) : this._modules).map(_module =>
-        this._handleInstall(_module)
-      ),
+    return this._executeModulesInOrder(
+      instance => this._handleInstall(instance),
+      filter,
       options
     );
   }
@@ -111,10 +111,9 @@ export class ModuleManagerClass implements ModuleManager {
     filter?: (instance: ModuleInstance) => boolean,
     options?: ModuleExecutionOptions
   ): Promise<void> {
-    await handlePromises(
-      (filter ? this._modules.filter(filter) : this._modules).map(_module =>
-        this._handleUninstall(_module)
-      ),
+    return this._executeModulesInOrder(
+      instance => this._handleUninstall(instance),
+      filter,
       options
     );
   }
@@ -162,6 +161,16 @@ export class ModuleManagerClass implements ModuleManager {
     this._removeFromArray(item => item === instance);
   }
 
+  private _isInstance(value: any): value is ModuleInstance {
+    return typeof value === 'object' && value !== null && 'config' in value;
+  }
+
+  private _getForConfig(config?: ModuleConfig): ModuleInstance | undefined {
+    return config?.resolved?.meta?.name
+      ? this._moduleMap.get(config.resolved.meta.name)
+      : this._modules.find(item => item.config === config);
+  }
+
   private async _handleInstall(instance: ModuleInstance): Promise<void> {
     await instance.install();
     if (instance.name) {
@@ -177,13 +186,36 @@ export class ModuleManagerClass implements ModuleManager {
     }
   }
 
-  private _isInstance(value: any): value is ModuleInstance {
-    return typeof value === 'object' && value !== null && 'config' in value;
-  }
+  private async _executeModulesInOrder(
+    fn: (instance: ModuleInstance) => Promise<void>,
+    filter?: (instance: ModuleInstance) => boolean,
+    options?: ModuleExecutionOptions
+  ) {
+    const moduleGroups: Record<ModuleEnforce | 'default', ModuleInstance[]> = {
+      pre: [],
+      post: [],
+      fin: [],
+      default: []
+    };
 
-  private _getByConfig(config?: ModuleConfig): ModuleInstance | undefined {
-    return config?.resolved?.meta?.name
-      ? this._moduleMap.get(config.resolved.meta.name)
-      : this._modules.find(item => item.config === config);
+    for (const _module of this._modules) {
+      if (filter && !filter(_module)) {
+        continue;
+      }
+
+      const groupKey = (_module.config.enforce as ModuleEnforce) ?? 'default';
+      moduleGroups[groupKey].push(_module);
+    }
+
+    for (const moduleGroup of [
+      moduleGroups.pre,
+      moduleGroups.default,
+      moduleGroups.post,
+      moduleGroups.fin
+    ]) {
+      if (moduleGroup.length > 0) {
+        await handlePromises(moduleGroup.map(fn), options);
+      }
+    }
   }
 }

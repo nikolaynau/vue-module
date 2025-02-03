@@ -4,7 +4,7 @@ import type {
   ModuleLoadConfig,
   ModuleLoader,
   ModuleOptions,
-  ModulePhase,
+  ModuleEnforce,
   ModuleSetupReturn
 } from '../types';
 import { isModuleLoader } from '../module';
@@ -48,7 +48,7 @@ function parseLoaderConfig<
 ) {
   let loader: ModuleLoader<T, R> | undefined = undefined;
   let options: ModuleConfig<T, R>['options'] = undefined;
-  let enforce: ModulePhase | undefined;
+  let enforce: ModuleEnforce | undefined;
   const deps: ModuleDep[] = [];
 
   if (isModuleLoader<T, R>(loaderOrConfig)) {

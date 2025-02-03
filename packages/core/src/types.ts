@@ -43,7 +43,7 @@ export interface ModuleDefinition<
 
 export type ModuleDep = () => Awaitable<any>;
 
-export type ModulePhase = 'pre' | 'post' | 'fin';
+export type ModuleEnforce = 'pre' | 'post' | 'fin';
 
 export type ModuleLoaderResult<T> = T | { default: T };
 
@@ -63,7 +63,7 @@ export interface ModuleConfig<
 > {
   loader: ModuleLoader<T, R>;
   options?: ((meta?: ModuleMeta) => Awaitable<T>) | T;
-  enforce?: ModulePhase;
+  enforce?: ModuleEnforce;
   deps?: ModuleDep[];
   resolved?: ResolvedModule<T, R>;
   scope?: ModuleScope;

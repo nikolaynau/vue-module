@@ -5,7 +5,8 @@ import {
   beforeEach,
   afterEach,
   vi,
-  type MockInstance
+  type MockInstance,
+  type Mock
 } from 'vitest';
 import { ModuleManagerClass } from '../src/modules/moduleManager';
 import * as promiseUtils from '../src/promise';
@@ -24,7 +25,8 @@ function createTestModule(name: string, installed = false): ModuleInstance {
     config: {
       loader: () => ({}),
       resolved: { meta: { name } } as ResolvedModule,
-      scope: undefined
+      scope: undefined,
+      enforce: undefined
     },
     get isInstalled() {
       return installed;
@@ -307,5 +309,93 @@ describe('ModuleManagerClass', () => {
     expect(errors.length).toBe(1);
     expect(errors[0]).toBeInstanceOf(Error);
     expect(errors[0].message).toBe(error.message);
+  });
+
+  it('should process modules in sorted order for bulkInstall based on enforce (pre → default → post → fin)', async () => {
+    const order: string[] = [];
+
+    const modulePre = createTestModule('modulePre');
+    modulePre.config.enforce = 'pre';
+    (modulePre.install as Mock).mockImplementation(() => {
+      order.push('modulePre');
+    });
+
+    const modulePost = createTestModule('modulePost');
+    modulePost.config.enforce = 'post';
+    (modulePost.install as Mock).mockImplementation(() => {
+      order.push('modulePost');
+    });
+
+    const moduleFin = createTestModule('moduleFin');
+    moduleFin.config.enforce = 'fin';
+    (moduleFin.install as Mock).mockImplementation(() => {
+      order.push('moduleFin');
+    });
+
+    const defaultModule = createTestModule('defaultModule');
+    defaultModule.config.enforce = undefined;
+    (defaultModule.install as Mock).mockImplementation(() => {
+      order.push('defaultModule');
+    });
+
+    const manager = new ModuleManagerClass([
+      modulePost,
+      moduleFin,
+      modulePre,
+      defaultModule
+    ]);
+
+    await manager.bulkInstall();
+
+    expect(order).toEqual([
+      'modulePre',
+      'defaultModule',
+      'modulePost',
+      'moduleFin'
+    ]);
+  });
+
+  it('should process modules in sorted order for bulkUninstall based on enforce (pre → default → post → fin)', async () => {
+    const order: string[] = [];
+
+    const modulePre = createTestModule('modulePre', true);
+    modulePre.config.enforce = 'pre';
+    (modulePre.uninstall as Mock).mockImplementation(() => {
+      order.push('modulePre');
+    });
+
+    const modulePost = createTestModule('modulePost', true);
+    modulePost.config.enforce = 'post';
+    (modulePost.uninstall as Mock).mockImplementation(() => {
+      order.push('modulePost');
+    });
+
+    const moduleFin = createTestModule('moduleFin', true);
+    moduleFin.config.enforce = 'fin';
+    (moduleFin.uninstall as Mock).mockImplementation(() => {
+      order.push('moduleFin');
+    });
+
+    const defaultModule = createTestModule('defaultModule', true);
+    defaultModule.config.enforce = undefined;
+    (defaultModule.uninstall as Mock).mockImplementation(() => {
+      order.push('defaultModule');
+    });
+
+    const manager = new ModuleManagerClass([
+      modulePost,
+      moduleFin,
+      modulePre,
+      defaultModule
+    ]);
+
+    await manager.bulkUninstall();
+
+    expect(order).toEqual([
+      'modulePre',
+      'defaultModule',
+      'modulePost',
+      'moduleFin'
+    ]);
   });
 });
