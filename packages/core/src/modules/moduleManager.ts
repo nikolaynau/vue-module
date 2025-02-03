@@ -96,36 +96,30 @@ export class ModuleManagerClass implements ModuleManager {
       : this._modules.every(m => m.isInstalled);
   }
 
-  public bulkInstall(
-    filter?: (instance: ModuleInstance) => boolean,
-    options?: ModuleExecutionOptions
-  ): Promise<void> {
-    return this._executeModulesInOrder(
-      instance => this._handleInstall(instance),
-      filter,
-      options
-    );
+  public async install(...args: any[]): Promise<void> {
+    if (args.length === 1 && args[0] && typeof args[0] !== 'function') {
+      await this._handleInstall(this.add(args[0]));
+    } else {
+      await this._executeModulesInOrder(
+        instance => this._handleInstall(instance),
+        args[0],
+        args[1]
+      );
+    }
   }
 
-  public async bulkUninstall(
-    filter?: (instance: ModuleInstance) => boolean,
-    options?: ModuleExecutionOptions
-  ): Promise<void> {
-    return this._executeModulesInOrder(
-      instance => this._handleUninstall(instance),
-      filter,
-      options
-    );
-  }
-
-  public async install(value: ModuleInstance<any, any>): Promise<void> {
-    await this._handleInstall(this.add(value));
-  }
-
-  public async uninstall(value: unknown): Promise<void> {
-    const instance = this.get(value);
-    if (instance) {
-      await this._handleUninstall(instance);
+  public async uninstall(...args: any[]): Promise<void> {
+    if (args.length === 1 && args[0] && typeof args[0] !== 'function') {
+      const instance = this.get(args[0]);
+      if (instance) {
+        await this._handleUninstall(instance);
+      }
+    } else {
+      await this._executeModulesInOrder(
+        instance => this._handleUninstall(instance),
+        args[0],
+        args[1]
+      );
     }
   }
 

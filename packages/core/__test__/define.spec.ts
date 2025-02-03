@@ -51,4 +51,26 @@ describe('defineModule', () => {
 
     expect(module).toBeUndefined();
   });
+
+  it('should define module with name undefined and setup function', () => {
+    const setupFunction: ModuleSetupFunction<ModuleOptions> = () => {
+      return { success: true };
+    };
+
+    const module = defineModule(undefined, setupFunction);
+
+    expect(module).toEqual({
+      meta: { name: undefined },
+      setup: setupFunction
+    });
+  });
+
+  it('should define module with undefined', () => {
+    // @ts-expect-error Invalid input type is expected for testing purposes
+    const module = defineModule();
+
+    expect(module).toEqual({
+      setup: undefined
+    });
+  });
 });

@@ -184,7 +184,7 @@ describe('ModuleManagerClass', () => {
     expect(module1.isInstalled).toBe(false);
     expect(module2.isInstalled).toBe(false);
 
-    await manager.bulkInstall();
+    await manager.install();
     expect(module1.install).toHaveBeenCalled();
     expect(module2.install).toHaveBeenCalled();
     expect(module1.isInstalled).toBe(true);
@@ -195,7 +195,7 @@ describe('ModuleManagerClass', () => {
     expect(module1.isInstalled).toBe(false);
     expect(module2.isInstalled).toBe(false);
 
-    await manager.bulkInstall(m => m.name === 'module1');
+    await manager.install((m: any) => m.name === 'module1');
     expect(module1.isInstalled).toBe(true);
     expect(module1.install).toHaveBeenCalled();
     expect(module2.install).not.toHaveBeenCalled();
@@ -207,7 +207,7 @@ describe('ModuleManagerClass', () => {
     expect(module1.isInstalled).toBe(true);
     expect(module2.isInstalled).toBe(true);
 
-    await manager.bulkUninstall();
+    await manager.uninstall();
     expect(module1.uninstall).toHaveBeenCalled();
     expect(module2.uninstall).toHaveBeenCalled();
     expect(module1.isInstalled).toBe(false);
@@ -220,7 +220,7 @@ describe('ModuleManagerClass', () => {
     expect(module1.isInstalled).toBe(true);
     expect(module2.isInstalled).toBe(true);
 
-    await manager.bulkUninstall(m => m.name === 'module1');
+    await manager.uninstall((m: any) => m.name === 'module1');
     expect(module1.isInstalled).toBe(false);
     expect(module1.uninstall).toHaveBeenCalled();
     expect(module2.uninstall).not.toHaveBeenCalled();
@@ -261,7 +261,7 @@ describe('ModuleManagerClass', () => {
     });
 
     await expect(
-      manager.bulkInstall(undefined, { suppressErrors: true, errors })
+      manager.install(undefined, { suppressErrors: true, errors })
     ).resolves.toBeUndefined();
 
     expect(module1.install).toHaveBeenCalled();
@@ -297,7 +297,7 @@ describe('ModuleManagerClass', () => {
     expect(module2.isInstalled).toBe(true);
 
     await expect(
-      manager.bulkUninstall(undefined, { suppressErrors: true, errors })
+      manager.uninstall(undefined, { suppressErrors: true, errors })
     ).resolves.toBeUndefined();
 
     expect(module1.uninstall).toHaveBeenCalled();
@@ -311,7 +311,7 @@ describe('ModuleManagerClass', () => {
     expect(errors[0].message).toBe(error.message);
   });
 
-  it('should process modules in sorted order for bulkInstall based on enforce (pre → default → post → fin)', async () => {
+  it('should process modules in sorted order for install based on enforce (pre → default → post → fin)', async () => {
     const order: string[] = [];
 
     const modulePre = createTestModule('modulePre');
@@ -345,7 +345,7 @@ describe('ModuleManagerClass', () => {
       defaultModule
     ]);
 
-    await manager.bulkInstall();
+    await manager.install();
 
     expect(order).toEqual([
       'modulePre',
@@ -355,7 +355,7 @@ describe('ModuleManagerClass', () => {
     ]);
   });
 
-  it('should process modules in sorted order for bulkUninstall based on enforce (pre → default → post → fin)', async () => {
+  it('should process modules in sorted order for uninstall based on enforce (pre → default → post → fin)', async () => {
     const order: string[] = [];
 
     const modulePre = createTestModule('modulePre', true);
@@ -389,7 +389,7 @@ describe('ModuleManagerClass', () => {
       defaultModule
     ]);
 
-    await manager.bulkUninstall();
+    await manager.uninstall();
 
     expect(order).toEqual([
       'modulePre',

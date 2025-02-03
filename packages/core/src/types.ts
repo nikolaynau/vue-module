@@ -230,21 +230,20 @@ export interface ModuleManager {
   isInstalled(name: ModuleKey): boolean;
   isInstalled(name: string): boolean;
 
+  install(
+    filter?: (instance: ModuleInstance) => boolean,
+    options?: ModuleExecutionOptions
+  ): Promise<void>;
   install(instance: ModuleInstance): Promise<void>;
 
+  uninstall(
+    filter?: (instance: ModuleInstance) => boolean,
+    options?: ModuleExecutionOptions
+  ): Promise<void>;
   uninstall(config: ModuleConfig): Promise<void>;
   uninstall(name: ModuleKey): Promise<void>;
   uninstall(name: string): Promise<void>;
   uninstall(instance: ModuleInstance): Promise<void>;
-
-  bulkInstall(
-    filter?: (instance: ModuleInstance) => boolean,
-    options?: ModuleExecutionOptions
-  ): Promise<void>;
-  bulkUninstall(
-    filter?: (instance: ModuleInstance) => boolean,
-    options?: ModuleExecutionOptions
-  ): Promise<void>;
 }
 
 export interface ModuleScope {

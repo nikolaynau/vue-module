@@ -10,7 +10,7 @@ export function defineModule<
   TResult extends ModuleSetupReturn = ModuleSetupReturn,
   TName = string
 >(
-  name: TName,
+  name: TName | undefined,
   setup: ModuleSetupFunction<TOptions, TResult>
 ): ModuleDefinition<TOptions, TResult>;
 
@@ -31,17 +31,18 @@ export function defineModule<
 export function defineModule<
   TOptions extends ModuleOptions = ModuleOptions,
   TResult extends ModuleSetupReturn = ModuleSetupReturn
->(
-  arg: unknown,
-  setup?: ModuleSetupFunction<TOptions, TResult>
-): ModuleDefinition<TOptions, TResult> {
-  if (typeof arg === 'function') {
-    return defineModule({
-      setup: arg as ModuleSetupFunction<TOptions, TResult>
-    });
-  } else if (typeof arg === 'string') {
-    return defineModule({ meta: { name: arg }, setup });
+>(...args: any[]): ModuleDefinition<TOptions, TResult> {
+  if (args.length === 2) {
+    return defineModule({ meta: { name: args[0] }, setup: args[1] });
+  } else if (args.length === 1) {
+    if (typeof args[0] === 'function') {
+      return defineModule({
+        setup: args[0]
+      });
+    } else {
+      return args[0];
+    }
   } else {
-    return arg as ModuleDefinition<TOptions, TResult>;
+    return defineModule({ setup: undefined });
   }
 }
