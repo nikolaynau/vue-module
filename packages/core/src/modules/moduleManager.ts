@@ -208,7 +208,10 @@ export class ModuleManagerClass implements ModuleManager {
       moduleGroups.fin
     ]) {
       if (moduleGroup.length > 0) {
-        await handlePromises(moduleGroup.map(fn), options);
+        await handlePromises(
+          moduleGroup.map(m => () => fn(m)),
+          options
+        );
       }
     }
   }

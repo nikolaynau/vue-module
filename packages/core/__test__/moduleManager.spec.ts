@@ -251,9 +251,9 @@ describe('ModuleManagerClass', () => {
     (module2.install as unknown as MockInstance).mockRejectedValue(error);
 
     mockHandlePromises.mockImplementation(async (...args: any[]) => {
-      for (const promise of args[0]) {
+      for (const promiseFn of args[0]) {
         try {
-          await promise;
+          await promiseFn();
         } catch (e) {
           args[1].errors.push(e as Error);
         }
@@ -282,9 +282,9 @@ describe('ModuleManagerClass', () => {
     (module2.uninstall as unknown as MockInstance).mockRejectedValue(error);
 
     mockHandlePromises.mockImplementation(async (...args: any[]) => {
-      for (const promise of args[0]) {
+      for (const promiseFn of args[0]) {
         try {
-          await promise;
+          await promiseFn();
         } catch (e) {
           args[1].errors.push(e as Error);
         }

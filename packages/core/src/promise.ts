@@ -1,60 +1,67 @@
 import type { ModuleExecutionOptions } from './types';
 
+export type PromiseFn<T> = () => Promise<T>;
+
 export async function handlePromises<T>(
-  promise: Promise<T>,
+  promiseFn: PromiseFn<T>,
   options?: ModuleExecutionOptions
 ): Promise<T>;
 export async function handlePromises<T>(
-  promises: Promise<T>[],
+  promiseFns: PromiseFn<T>[],
   options?: ModuleExecutionOptions
 ): Promise<T[]>;
 export async function handlePromises<T>(
-  promises: Promise<T> | Promise<T>[],
+  promiseFns: PromiseFn<T> | PromiseFn<T>[],
   options: ModuleExecutionOptions = {}
 ): Promise<T | T[]> {
   const { parallel = false, suppressErrors = false, errors = [] } = options;
 
-  if (Array.isArray(promises)) {
-    return processMultiplePromises(promises, parallel, suppressErrors, errors);
+  if (Array.isArray(promiseFns)) {
+    return processMultiplePromises(
+      promiseFns,
+      parallel,
+      suppressErrors,
+      errors
+    );
   } else {
-    return processSinglePromise(promises, suppressErrors, errors);
+    return processSinglePromise(promiseFns, suppressErrors, errors);
   }
 }
 
 async function processSinglePromise<T>(
-  promise: Promise<T>,
+  promiseFn: PromiseFn<T>,
   suppressErrors: boolean,
   errors: any[]
 ): Promise<T> {
   try {
-    return await promise;
+    return await promiseFn();
   } catch (error) {
     return handleError(error as Error, suppressErrors, errors);
   }
 }
 
 async function processMultiplePromises<T>(
-  promises: Promise<T>[],
+  promiseFns: PromiseFn<T>[],
   parallel: boolean,
   suppressErrors: boolean,
   errors: Error[]
 ): Promise<T[]> {
   if (parallel) {
     return Promise.all(
-      promises.map(p => processSinglePromise(p, suppressErrors, errors))
+      promiseFns.map(fn => processSinglePromise(fn, suppressErrors, errors))
     );
   }
-  return processSequentially(promises, suppressErrors, errors);
+  return processSequentially(promiseFns, suppressErrors, errors);
 }
 
 async function processSequentially<T>(
-  promises: Promise<T>[],
+  promiseFns: PromiseFn<T>[],
   suppressErrors: boolean,
   errors: Error[]
 ): Promise<T[]> {
   const results: T[] = [];
-  for (const promise of promises) {
-    results.push(await processSinglePromise(promise, suppressErrors, errors));
+  for (const fn of promiseFns) {
+    results.push(await processSinglePromise(fn, suppressErrors, errors));
   }
   return results;
 }
