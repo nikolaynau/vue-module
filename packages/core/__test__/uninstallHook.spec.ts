@@ -70,15 +70,16 @@ describe('callUninstallHook', () => {
       } as ModuleManager
     } as any;
 
-    const moduleInstance = {
+    const currentModule = {
+      name: 'test-module',
       isInstalled: true,
       scope
     } as ModuleInstance;
 
-    await callUninstallHook(moduleInstance);
+    await callUninstallHook(currentModule);
 
     expect(spyNull).toHaveBeenCalledWith(
-      moduleInstance,
+      currentModule,
       'uninstall',
       false,
       undefined
@@ -88,11 +89,12 @@ describe('callUninstallHook', () => {
       depModule,
       scope,
       'uninstall',
+      'test-module',
       false,
       undefined
     );
     expect(spyAny).toHaveBeenCalledWith(
-      moduleInstance,
+      currentModule,
       depModule,
       'uninstall',
       false,
@@ -104,12 +106,12 @@ describe('callUninstallHook', () => {
     const testError = new Error('Test error');
     vi.spyOn(hookModule, 'invokeNullKeyHooks').mockRejectedValue(testError);
 
-    const moduleInstance = {
+    const currentModule = {
       isInstalled: true,
       scope: undefined
     } as ModuleInstance;
 
-    await expect(callUninstallHook(moduleInstance)).rejects.toThrow(
+    await expect(callUninstallHook(currentModule)).rejects.toThrow(
       'Test error'
     );
   });
@@ -122,13 +124,44 @@ describe('callUninstallHook', () => {
       }
     );
 
-    const moduleInstance = {
+    const currentModule = {
       isInstalled: true,
       scope: undefined
     } as ModuleInstance;
 
     const errors: Error[] = [];
-    await callUninstallHook(moduleInstance, true, errors);
+    await callUninstallHook(currentModule, true, errors);
     expect(errors).toEqual([testError]);
+  });
+
+  it('should call dependent hook functions for current module', async () => {
+    const spySpecified = vi
+      .spyOn(hookModule, 'invokeSpecifiedKeyHooks')
+      .mockResolvedValue(undefined);
+
+    const modules: ModuleInstance[] = [];
+    const scope: ModuleScope = {
+      modules: {
+        toArray: () => modules
+      } as ModuleManager
+    } as any;
+
+    const currentModule = {
+      name: 'test-module',
+      isInstalled: true,
+      scope
+    } as ModuleInstance;
+    modules.push(currentModule);
+
+    await callUninstallHook(currentModule);
+
+    expect(spySpecified).toHaveBeenCalledWith(
+      currentModule,
+      scope,
+      'uninstall',
+      undefined,
+      false,
+      undefined
+    );
   });
 });

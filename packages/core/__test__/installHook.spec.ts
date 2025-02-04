@@ -60,11 +60,8 @@ describe('callInstallHook', () => {
     const spyNull = vi
       .spyOn(hookModule, 'invokeNullKeyHooks')
       .mockResolvedValue(undefined);
-    const spySpecified = vi
-      .spyOn(hookModule, 'invokeSpecifiedKeyHooks')
-      .mockResolvedValue(undefined);
-    const spySpecifiedArray = vi
-      .spyOn(hookModule, 'invokeSpecifiedKeyArrayHooks')
+    const spyAllSpecified = vi
+      .spyOn(hookModule, 'invokeAllSpecifiedKeyHooks')
       .mockResolvedValue(undefined);
     const spyAny = vi
       .spyOn(hookModule, 'invokeAnyKeyHooks')
@@ -84,35 +81,30 @@ describe('callInstallHook', () => {
       } as ModuleManager
     };
 
-    const moduleInstance = {
+    const currentModule = {
+      name: 'test-module',
       isInstalled: true,
       scope
     } as ModuleInstance;
 
-    await callInstallHook(moduleInstance);
+    await callInstallHook(currentModule);
 
     expect(spyNull).toHaveBeenCalledWith(
-      moduleInstance,
+      currentModule,
       'installed',
       false,
       undefined
     );
-    expect(spySpecified).toHaveBeenCalledWith(
+    expect(spyAllSpecified).toHaveBeenCalledWith(
       dependentModule,
       scope,
       'installed',
-      false,
-      undefined
-    );
-    expect(spySpecifiedArray).toHaveBeenCalledWith(
-      dependentModule,
-      scope,
-      'installed',
+      'test-module',
       false,
       undefined
     );
     expect(spyAny).toHaveBeenCalledWith(
-      moduleInstance,
+      currentModule,
       dependentModule,
       'installed',
       false,
@@ -155,5 +147,36 @@ describe('callInstallHook', () => {
     const errors: Error[] = [];
     await callInstallHook(moduleInstance, true, errors);
     expect(errors).toEqual([testError]);
+  });
+
+  it('should call all dependent hook functions for current module', async () => {
+    const spyAllSpecified = vi
+      .spyOn(hookModule, 'invokeAllSpecifiedKeyHooks')
+      .mockResolvedValue(undefined);
+
+    const modules: ModuleInstance[] = [];
+    const scope: ModuleScope = {
+      modules: {
+        toArray: () => modules
+      } as ModuleManager
+    } as any;
+
+    const currentModule = {
+      name: 'test-module',
+      isInstalled: true,
+      scope
+    } as ModuleInstance;
+    modules.push(currentModule);
+
+    await callInstallHook(currentModule);
+
+    expect(spyAllSpecified).toHaveBeenCalledWith(
+      currentModule,
+      scope,
+      'installed',
+      undefined,
+      false,
+      undefined
+    );
   });
 });

@@ -1,11 +1,11 @@
+import { moduleEquals } from '../module';
 import { type ModuleHookType, type ModuleInstance } from '../types';
 import {
   getAllModules,
   invokeAllKeyHooks,
+  invokeAllSpecifiedKeyHooks,
   invokeAnyKeyHooks,
-  invokeNullKeyHooks,
-  invokeSpecifiedKeyArrayHooks,
-  invokeSpecifiedKeyHooks
+  invokeNullKeyHooks
 } from './hook';
 
 export async function callInstallHook(
@@ -35,20 +35,28 @@ async function invokeDependentHooks(
   }
 
   for (const depModule of getAllModules(scope)) {
-    await invokeSpecifiedKeyHooks(
-      depModule,
-      scope,
-      hookType,
-      suppressErrors,
-      errors
-    );
-    await invokeSpecifiedKeyArrayHooks(
-      depModule,
-      scope,
-      hookType,
-      suppressErrors,
-      errors
-    );
+    const isCurrentModule = moduleEquals(currentModule, depModule);
+
+    if (isCurrentModule) {
+      await invokeAllSpecifiedKeyHooks(
+        depModule,
+        scope,
+        hookType,
+        undefined,
+        suppressErrors,
+        errors
+      );
+    } else if (currentModule.name) {
+      await invokeAllSpecifiedKeyHooks(
+        depModule,
+        scope,
+        hookType,
+        currentModule.name,
+        suppressErrors,
+        errors
+      );
+    }
+
     await invokeAnyKeyHooks(
       currentModule,
       depModule,
@@ -56,6 +64,7 @@ async function invokeDependentHooks(
       suppressErrors,
       errors
     );
+
     await invokeAllKeyHooks(depModule, scope, hookType, suppressErrors, errors);
   }
 }

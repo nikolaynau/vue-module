@@ -70,12 +70,16 @@ export async function invokeSpecifiedKeyHooks(
   target: ModuleInstance,
   scope: ModuleScope,
   hookType: ModuleHookType,
+  forHookKey?: string,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
   const hooksToCall = target.hooks?.filter(
     hook =>
-      hook.type === hookType && typeof hook.key === 'string' && !hook.called
+      hook.type === hookType &&
+      typeof hook.key === 'string' &&
+      !hook.called &&
+      (forHookKey ? hook.key === forHookKey : true)
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
@@ -93,11 +97,16 @@ export async function invokeSpecifiedKeyArrayHooks(
   target: ModuleInstance,
   scope: ModuleScope,
   hookType: ModuleHookType,
+  forHookKey?: string,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
   const hooksToCall = target.hooks?.filter(
-    hook => hook.type === hookType && Array.isArray(hook.key) && !hook.called
+    hook =>
+      hook.type === hookType &&
+      Array.isArray(hook.key) &&
+      !hook.called &&
+      (forHookKey ? hook.key.includes(forHookKey) : true)
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
@@ -113,6 +122,32 @@ export async function invokeSpecifiedKeyArrayHooks(
       }
     }
   }
+}
+
+export async function invokeAllSpecifiedKeyHooks(
+  target: ModuleInstance,
+  scope: ModuleScope,
+  hookType: ModuleHookType,
+  forHookKey?: string,
+  suppressErrors?: boolean,
+  errors?: Error[]
+) {
+  await invokeSpecifiedKeyHooks(
+    target,
+    scope,
+    hookType,
+    forHookKey,
+    suppressErrors,
+    errors
+  );
+  await invokeSpecifiedKeyArrayHooks(
+    target,
+    scope,
+    hookType,
+    forHookKey,
+    suppressErrors,
+    errors
+  );
 }
 
 export async function invokeHook(

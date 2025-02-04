@@ -1,5 +1,6 @@
 import type {
   ModuleConfig,
+  ModuleInstance,
   ModuleLoader,
   ModuleOptions,
   ModuleSetupReturn
@@ -18,6 +19,17 @@ export function isModuleLoader<
   R extends ModuleSetupReturn
 >(value: unknown): value is ModuleLoader<T, R> {
   return typeof value === 'function';
+}
+
+export function moduleEquals(
+  first: ModuleInstance<any, any>,
+  second: ModuleInstance<any, any>
+): boolean {
+  return Boolean(
+    first === second ||
+      (first.config && second.config && first.config === second.config) ||
+      (first.name && second.name && first.name === second.name)
+  );
 }
 
 export function disposeModule(config: ModuleConfig<any, any>): void {

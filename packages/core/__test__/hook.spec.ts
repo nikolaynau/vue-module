@@ -525,7 +525,14 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
 
     const errors: Error[] = [];
 
-    await invokeSpecifiedKeyHooks(target, scope, TEST_HOOK_TYPE, true, errors);
+    await invokeSpecifiedKeyHooks(
+      target,
+      scope,
+      TEST_HOOK_TYPE,
+      undefined,
+      true,
+      errors
+    );
 
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);
@@ -562,6 +569,7 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
       target,
       scope,
       TEST_HOOK_TYPE,
+      undefined,
       true,
       errors
     );
