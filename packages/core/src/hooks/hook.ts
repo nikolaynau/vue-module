@@ -7,29 +7,32 @@ import {
 } from '../types';
 
 export async function invokeNullKeyHooks(
-  moduleInstance: ModuleInstance,
+  target: ModuleInstance,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const hooksToCall = moduleInstance.hooks?.filter(
-    hook => hook.type === hookType && hook.key === null
+  const hooksToCall = target.hooks?.filter(
+    hook => hook.type === hookType && hook.key === null && !hook.called
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
-    await invokeHooks(hooksToCall, moduleInstance, suppressErrors, errors);
+    for (const hook of hooksToCall) {
+      await invokeHook(hook, target, suppressErrors, errors);
+    }
   }
 }
 
 export async function invokeAllKeyHooks(
-  moduleInstance: ModuleInstance,
+  target: ModuleInstance,
   scope: ModuleScope,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const hooksToCall = moduleInstance.hooks?.filter(
-    hook => hook.type === hookType && hook.key === ModuleHookKey.All
+  const hooksToCall = target.hooks?.filter(
+    hook =>
+      hook.type === hookType && hook.key === ModuleHookKey.All && !hook.called
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
@@ -37,7 +40,10 @@ export async function invokeAllKeyHooks(
 
     if (allModulesInstalled) {
       const configs = getAllModules(scope);
-      await invokeHooks(hooksToCall, configs, suppressErrors, errors);
+
+      for (const hook of hooksToCall) {
+        await invokeHook(hook, configs, suppressErrors, errors);
+      }
     }
   }
 }
@@ -54,59 +60,56 @@ export async function invokeAnyKeyHooks(
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
-    await invokeHooks(hooksToCall, source, suppressErrors, errors);
+    for (const hook of hooksToCall) {
+      await invokeHook(hook, source, suppressErrors, errors);
+    }
   }
 }
 
 export async function invokeSpecifiedKeyHooks(
-  source: ModuleInstance,
-  target: ModuleInstance,
-  hookType: ModuleHookType,
-  suppressErrors?: boolean,
-  errors?: Error[]
-) {
-  if (!source.name) {
-    return;
-  }
-
-  const hooksToCall = target.hooks?.filter(
-    hook => hook.type === hookType && hook.key === source.name
-  );
-
-  if (hooksToCall && hooksToCall.length > 0) {
-    await invokeHooks(hooksToCall, source, suppressErrors, errors);
-  }
-}
-
-export async function invokeSpecifiedKeyArrayHooks(
-  source: ModuleInstance,
   target: ModuleInstance,
   scope: ModuleScope,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  if (!source.name) {
-    return;
-  }
-
   const hooksToCall = target.hooks?.filter(
     hook =>
-      hook.type === hookType &&
-      Array.isArray(hook.key) &&
-      hook.key.includes(source.name!)
+      hook.type === hookType && typeof hook.key === 'string' && !hook.called
+  );
+
+  if (hooksToCall && hooksToCall.length > 0) {
+    for (const hook of hooksToCall) {
+      const depModule = scope.modules.get(hook.key as string);
+
+      if (depModule?.isInstalled) {
+        await invokeHook(hook, depModule, suppressErrors, errors);
+      }
+    }
+  }
+}
+
+export async function invokeSpecifiedKeyArrayHooks(
+  target: ModuleInstance,
+  scope: ModuleScope,
+  hookType: ModuleHookType,
+  suppressErrors?: boolean,
+  errors?: Error[]
+) {
+  const hooksToCall = target.hooks?.filter(
+    hook => hook.type === hookType && Array.isArray(hook.key) && !hook.called
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
     for (const hook of hooksToCall) {
       const keys = hook.key as string[];
 
-      const modules = keys
+      const depModules = keys
         .map(key => scope.modules.get(key))
         .filter(m => m?.isInstalled) as ModuleInstance[];
 
-      if (modules.length === keys.length) {
-        await invokeHook(hook, modules, suppressErrors, errors);
+      if (depModules.length === keys.length) {
+        await invokeHook(hook, depModules, suppressErrors, errors);
       }
     }
   }
@@ -118,14 +121,16 @@ export async function invokeHook(
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  hook.lock = true;
+  const canLock = hook.key !== ModuleHookKey.Any;
+  if (canLock && (hook.lock || hook.called)) {
+    return;
+  }
+
+  hook.lock = canLock;
   try {
     await hook.callback(moduleInstance);
     hook.lock = false;
-
-    if (hook.key !== 'any') {
-      hook.called = true;
-    }
+    hook.called = canLock;
   } catch (e) {
     hook.lock = false;
     if (suppressErrors) {
@@ -134,23 +139,6 @@ export async function invokeHook(
       throw e;
     }
   }
-}
-
-export async function invokeHooks(
-  hooks: ModuleHookConfig[],
-  moduleInstance: ModuleInstance | ModuleInstance[],
-  suppressErrors?: boolean,
-  errors?: Error[]
-) {
-  for (const hook of hooks) {
-    if (canInvokeHook(hook)) {
-      await invokeHook(hook, moduleInstance, suppressErrors, errors);
-    }
-  }
-}
-
-export function canInvokeHook(hook: ModuleHookConfig): boolean {
-  return !hook.lock && !hook.called;
 }
 
 export function areAllModulesInstalled(scope: ModuleScope): boolean {

@@ -215,8 +215,12 @@ export interface ModuleManager {
     name: K
   ): ModuleInstance<ModuleOptions, ModuleValue<K>> | undefined;
   remove(name: string): ModuleInstance | undefined;
-  remove(config: ModuleConfig): ModuleInstance | undefined;
-  remove(instance: ModuleInstance): ModuleInstance | undefined;
+  remove<T extends ModuleOptions, R extends ModuleSetupReturn>(
+    config: ModuleConfig<T, R>
+  ): ModuleInstance<T, R> | undefined;
+  remove<T extends ModuleOptions, R extends ModuleSetupReturn>(
+    instance: ModuleInstance<T, R>
+  ): ModuleInstance<T, R> | undefined;
 
   removeAll(): void;
 
@@ -244,6 +248,9 @@ export interface ModuleManager {
   uninstall(name: ModuleKey): Promise<void>;
   uninstall(name: string): Promise<void>;
   uninstall(instance: ModuleInstance): Promise<void>;
+
+  _postInstall(instance: ModuleInstance<any, any>): void;
+  _postUninstall(instance: ModuleInstance<any, any>): void;
 }
 
 export interface ModuleScope {

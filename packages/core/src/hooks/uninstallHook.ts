@@ -34,8 +34,8 @@ async function invokeDependentHooks(
 
   for (const depModule of getAllModules(scope)) {
     await invokeSpecifiedKeyHooks(
-      currentModule,
       depModule,
+      scope,
       hookType,
       suppressErrors,
       errors

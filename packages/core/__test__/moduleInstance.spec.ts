@@ -19,7 +19,10 @@ import type {
 } from '../src/types';
 
 describe('ModuleClass', () => {
-  const mockManager = {} as ModuleManager;
+  const mockManager = {
+    _postInstall: vi.fn(),
+    _postUninstall: vi.fn()
+  } as unknown as ModuleManager;
   const mockScope: ModuleScope = {
     modules: mockManager
   };
@@ -128,6 +131,9 @@ describe('ModuleClass', () => {
         false,
         []
       );
+      expect(moduleInstance.scope?.modules._postInstall).toHaveBeenCalledWith(
+        moduleInstance
+      );
     });
 
     it('should not install if already installed', async () => {
@@ -180,6 +186,9 @@ describe('ModuleClass', () => {
         []
       );
       expect(mockDisposeModule).toHaveBeenCalledWith(mockConfig);
+      expect(moduleInstance.scope?.modules._postUninstall).toHaveBeenCalledWith(
+        moduleInstance
+      );
     });
 
     it('should not uninstall if not installed', async () => {

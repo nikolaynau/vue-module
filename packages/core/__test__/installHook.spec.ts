@@ -98,14 +98,13 @@ describe('callInstallHook', () => {
       undefined
     );
     expect(spySpecified).toHaveBeenCalledWith(
-      moduleInstance,
       dependentModule,
+      scope,
       'installed',
       false,
       undefined
     );
     expect(spySpecifiedArray).toHaveBeenCalledWith(
-      moduleInstance,
       dependentModule,
       scope,
       'installed',

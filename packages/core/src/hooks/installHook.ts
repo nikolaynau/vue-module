@@ -36,14 +36,13 @@ async function invokeDependentHooks(
 
   for (const depModule of getAllModules(scope)) {
     await invokeSpecifiedKeyHooks(
-      currentModule,
       depModule,
+      scope,
       hookType,
       suppressErrors,
       errors
     );
     await invokeSpecifiedKeyArrayHooks(
-      currentModule,
       depModule,
       scope,
       hookType,

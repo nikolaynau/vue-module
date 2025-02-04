@@ -60,7 +60,7 @@ export class ModuleClass<
 
   public async install(): Promise<void> {
     if (!this.isInstalled) {
-      await loadModule(this._config);
+      await this._handleInstall();
       await callInstallHook(this, this.ignoreHookErrors, this.hookErrors);
     }
   }
@@ -68,7 +68,21 @@ export class ModuleClass<
   public async uninstall(): Promise<void> {
     if (this.isInstalled) {
       await callUninstallHook(this, this.ignoreHookErrors, this.hookErrors);
-      disposeModule(this._config);
+      this._handleUninstall();
     }
+  }
+
+  private async _handleInstall(): Promise<void> {
+    await loadModule(this._config);
+    if (this.scope) {
+      this.scope.modules._postInstall(this);
+    }
+  }
+
+  private _handleUninstall() {
+    if (this.scope) {
+      this.scope.modules._postUninstall(this);
+    }
+    disposeModule(this._config);
   }
 }

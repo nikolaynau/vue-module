@@ -98,10 +98,10 @@ export class ModuleManagerClass implements ModuleManager {
 
   public async install(...args: any[]): Promise<void> {
     if (args.length === 1 && args[0] && typeof args[0] !== 'function') {
-      await this._handleInstall(this.add(args[0]));
+      await this.add(args[0]).install();
     } else {
       await this._executeModulesInOrder(
-        instance => this._handleInstall(instance),
+        instance => instance.install(),
         args[0],
         args[1]
       );
@@ -112,14 +112,27 @@ export class ModuleManagerClass implements ModuleManager {
     if (args.length === 1 && args[0] && typeof args[0] !== 'function') {
       const instance = this.get(args[0]);
       if (instance) {
-        await this._handleUninstall(instance);
+        await instance.uninstall();
       }
     } else {
       await this._executeModulesInOrder(
-        instance => this._handleUninstall(instance),
+        instance => instance.uninstall(),
         args[0],
         args[1]
       );
+    }
+  }
+
+  public _postInstall(instance: ModuleInstance<any, any>): void {
+    if (instance.name) {
+      this._moduleMap.set(instance.name, instance);
+    }
+  }
+
+  public _postUninstall(instance: ModuleInstance<any, any>): void {
+    const name = instance.name;
+    if (name) {
+      this._moduleMap.delete(name);
     }
   }
 
@@ -163,21 +176,6 @@ export class ModuleManagerClass implements ModuleManager {
     return config?.resolved?.meta?.name
       ? this._moduleMap.get(config.resolved.meta.name)
       : this._modules.find(item => item.config === config);
-  }
-
-  private async _handleInstall(instance: ModuleInstance): Promise<void> {
-    await instance.install();
-    if (instance.name) {
-      this._moduleMap.set(instance.name, instance);
-    }
-  }
-
-  private async _handleUninstall(instance: ModuleInstance): Promise<void> {
-    const name = instance.name;
-    await instance.uninstall();
-    if (name) {
-      this._moduleMap.delete(name);
-    }
   }
 
   private async _executeModulesInOrder(

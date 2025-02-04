@@ -15,7 +15,7 @@
     "format": "prettier --write --cache .",
     "test": "vitest",
     "test-unit": "vitest --project unit",
-    "test-e2e": "pnpm run build && vitest --project e2e",
+    "test-e2e": "vitest --project e2e",
     "test-dts": "pnpm run build && pnpm run test-dts-only",
     "test-dts-only": "pnpm tsd -f ./*.test-d.ts packages/dts-test",
     "prepare": "simple-git-hooks"

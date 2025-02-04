@@ -1,8 +1,0 @@
-{
-  "name": "@vuemodule/e2e-test",
-  "private": true,
-  "version": "0.0.0",
-  "dependencies": {
-    "@vuemodule/core": "workspace:*"
-  }
-}

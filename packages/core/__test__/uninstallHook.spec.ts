@@ -85,8 +85,8 @@ describe('callUninstallHook', () => {
     );
 
     expect(spySpecified).toHaveBeenCalledWith(
-      moduleInstance,
       depModule,
+      scope,
       'uninstall',
       false,
       undefined
