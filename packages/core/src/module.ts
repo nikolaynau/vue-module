@@ -1,6 +1,5 @@
 import type {
   ModuleConfig,
-  ModuleInstance,
   ModuleLoader,
   ModuleOptions,
   ModuleSetupReturn
@@ -14,6 +13,24 @@ export function isModuleDisposed(config: ModuleConfig<any, any>): boolean {
   return Boolean(config.resolved?.disposed);
 }
 
+export function getModuleName(
+  config: ModuleConfig<any, any>
+): string | undefined {
+  return config.resolved?.meta?.name;
+}
+
+export function getModuleVersion(
+  config: ModuleConfig<any, any>
+): string | undefined {
+  return config.resolved?.meta?.version;
+}
+
+export function getModuleExports<R extends ModuleSetupReturn>(
+  config: ModuleConfig<any, R>
+): R | undefined {
+  return config.resolved?.exports;
+}
+
 export function isModuleLoader<
   T extends ModuleOptions,
   R extends ModuleSetupReturn
@@ -22,17 +39,13 @@ export function isModuleLoader<
 }
 
 export function moduleEquals(
-  first?: ModuleInstance<any, any>,
-  second?: ModuleInstance<any, any>
+  first?: ModuleConfig<any, any>,
+  second?: ModuleConfig<any, any>
 ): boolean {
   return Boolean(
     first &&
       second &&
-      ((first.config && second.config && first.config === second.config) ||
-        (first.config.id &&
-          second.config.id &&
-          first.config.id === second.config.id) ||
-        (first.name && second.name && first.name === second.name))
+      (first === second || (first.id && second.id && first.id === second.id))
   );
 }
 

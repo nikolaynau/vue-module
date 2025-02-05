@@ -1,41 +1,38 @@
-import type { ModuleHookType, ModuleInstance } from '../types';
+import { getModuleName, isModuleInstalled, moduleEquals } from '../module';
+import type { ModuleConfig, ModuleHookType } from '../types';
 import {
   areAllModulesInstalled,
   getAllModules,
   invokeAllKeyHooks,
-  invokeAllSpecifiedKeyHooks,
+  invokeAllSpecKeyHooks,
   invokeAnyKeyHooks,
   invokeNullKeyHooks
 } from './hook';
 
 export async function callInstallHook(
-  moduleInstance: ModuleInstance<any, any>,
+  config: ModuleConfig<any, any>,
   suppressErrors: boolean = false,
   errors?: Error[]
 ): Promise<void> {
-  if (!moduleInstance.isInstalled) {
-    return;
+  if (isModuleInstalled(config)) {
+    await invokeNullKeyHooks(config, 'installed', suppressErrors, errors);
+    await invokeDependentHooks(config, 'installed', suppressErrors, errors);
   }
-
-  const hookType: ModuleHookType = 'installed';
-
-  await invokeNullKeyHooks(moduleInstance, hookType, suppressErrors, errors);
-  await invokeDependentHooks(moduleInstance, hookType, suppressErrors, errors);
 }
 
 async function invokeDependentHooks(
-  currentModule: ModuleInstance,
+  currentConfig: ModuleConfig,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const scope = currentModule.scope;
+  const scope = currentConfig.scope;
   if (!scope) {
     return;
   }
 
-  await invokeAllSpecifiedKeyHooks(
-    currentModule,
+  await invokeAllSpecKeyHooks(
+    currentConfig,
     scope,
     hookType,
     undefined,
@@ -44,41 +41,43 @@ async function invokeDependentHooks(
   );
 
   await invokeAnyKeyHooks(
-    currentModule,
-    currentModule,
+    currentConfig,
+    currentConfig,
     hookType,
     suppressErrors,
     errors
   );
 
-  const otherModules = getAllModules(scope).filter(
-    m => !currentModule.equals(m) && m.isInstalled
+  const otherConfigs = getAllModules(scope).filter(
+    c => !moduleEquals(c, currentConfig) && isModuleInstalled(c)
   );
 
-  if (otherModules.length > 0) {
-    for (const targetModule of otherModules) {
-      if (currentModule.name) {
-        await invokeAllSpecifiedKeyHooks(
-          targetModule,
+  if (otherConfigs.length > 0) {
+    const currentName = getModuleName(currentConfig);
+
+    for (const target of otherConfigs) {
+      if (currentName) {
+        await invokeAllSpecKeyHooks(
+          target,
           scope,
           hookType,
-          currentModule.name,
+          currentName,
           suppressErrors,
           errors
         );
       }
 
       await invokeAnyKeyHooks(
-        targetModule,
-        currentModule,
+        target,
+        currentConfig,
         hookType,
         suppressErrors,
         errors
       );
 
       await invokeAnyKeyHooks(
-        currentModule,
-        targetModule,
+        currentConfig,
+        target,
         hookType,
         suppressErrors,
         errors
@@ -88,14 +87,8 @@ async function invokeDependentHooks(
 
   const allModulesInstalled = areAllModulesInstalled(scope);
   if (allModulesInstalled) {
-    for (const targetModule of getAllModules(scope)) {
-      await invokeAllKeyHooks(
-        targetModule,
-        scope,
-        hookType,
-        suppressErrors,
-        errors
-      );
+    for (const target of getAllModules(scope)) {
+      await invokeAllKeyHooks(target, scope, hookType, suppressErrors, errors);
     }
   }
 }

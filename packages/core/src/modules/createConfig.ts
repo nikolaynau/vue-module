@@ -8,6 +8,7 @@ import type {
   ModuleSetupReturn
 } from '../types';
 import { isModuleLoader } from '../module';
+import { newId } from '../utils';
 
 export function createConfig<
   T extends ModuleOptions = ModuleOptions,
@@ -28,13 +29,13 @@ export function createConfig<
   }
 
   const config: ModuleConfig<T, R> = {
+    id: newId(),
     loader,
     options,
     enforce,
     deps,
     resolved: undefined,
-    scope: undefined,
-    id: Symbol()
+    scope: undefined
   };
 
   return config;

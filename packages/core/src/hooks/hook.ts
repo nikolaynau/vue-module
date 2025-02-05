@@ -2,17 +2,17 @@ import {
   ModuleHookKey,
   type ModuleHookConfig,
   type ModuleHookType,
-  type ModuleInstance,
+  type ModuleConfig,
   type ModuleScope
 } from '../types';
 
 export async function invokeNullKeyHooks(
-  target: ModuleInstance,
+  target: ModuleConfig,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const hooksToCall = target.hooks?.filter(
+  const hooksToCall = target.resolved?.hooks?.filter(
     hook => hook.type === hookType && hook.key === null && !hook.called
   );
 
@@ -24,13 +24,13 @@ export async function invokeNullKeyHooks(
 }
 
 export async function invokeAllKeyHooks(
-  target: ModuleInstance,
+  target: ModuleConfig,
   scope: ModuleScope,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const hooksToCall = target.hooks?.filter(
+  const hooksToCall = target.resolved?.hooks?.filter(
     hook =>
       hook.type === hookType && hook.key === ModuleHookKey.All && !hook.called
   );
@@ -45,13 +45,13 @@ export async function invokeAllKeyHooks(
 }
 
 export async function invokeAnyKeyHooks(
-  source: ModuleInstance,
-  target: ModuleInstance,
+  source: ModuleConfig,
+  target: ModuleConfig,
   hookType: ModuleHookType,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const hooksToCall = target.hooks?.filter(
+  const hooksToCall = target.resolved?.hooks?.filter(
     hook => hook.type === hookType && hook.key === ModuleHookKey.Any
   );
 
@@ -62,15 +62,15 @@ export async function invokeAnyKeyHooks(
   }
 }
 
-export async function invokeSpecifiedKeyHooks(
-  target: ModuleInstance,
+export async function invokeSpecKeyHooks(
+  target: ModuleConfig,
   scope: ModuleScope,
   hookType: ModuleHookType,
   forHookKey?: string,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const hooksToCall = target.hooks?.filter(
+  const hooksToCall = target.resolved?.hooks?.filter(
     hook =>
       hook.type === hookType &&
       typeof hook.key === 'string' &&
@@ -83,21 +83,21 @@ export async function invokeSpecifiedKeyHooks(
       const depModule = scope.modules.get(hook.key as string);
 
       if (depModule?.isInstalled) {
-        await invokeHook(hook, depModule, suppressErrors, errors);
+        await invokeHook(hook, depModule.config, suppressErrors, errors);
       }
     }
   }
 }
 
-export async function invokeSpecifiedKeyArrayHooks(
-  target: ModuleInstance,
+export async function invokeSpecKeyArrayHooks(
+  target: ModuleConfig,
   scope: ModuleScope,
   hookType: ModuleHookType,
   forHookKey?: string,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const hooksToCall = target.hooks?.filter(
+  const hooksToCall = target.resolved?.hooks?.filter(
     hook =>
       hook.type === hookType &&
       Array.isArray(hook.key) &&
@@ -108,27 +108,31 @@ export async function invokeSpecifiedKeyArrayHooks(
   if (hooksToCall && hooksToCall.length > 0) {
     for (const hook of hooksToCall) {
       const keys = hook.key as string[];
+      const configs: ModuleConfig[] = [];
 
-      const depModules = keys
-        .map(key => scope.modules.get(key))
-        .filter(m => m?.isInstalled) as ModuleInstance[];
+      for (const key of keys) {
+        const module = scope.modules.get(key);
+        if (module?.isInstalled()) {
+          configs.push(module.config);
+        }
+      }
 
-      if (depModules.length === keys.length) {
-        await invokeHook(hook, depModules, suppressErrors, errors);
+      if (configs.length === keys.length) {
+        await invokeHook(hook, configs, suppressErrors, errors);
       }
     }
   }
 }
 
-export async function invokeAllSpecifiedKeyHooks(
-  target: ModuleInstance,
+export async function invokeAllSpecKeyHooks(
+  target: ModuleConfig,
   scope: ModuleScope,
   hookType: ModuleHookType,
   forHookKey?: string,
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  await invokeSpecifiedKeyHooks(
+  await invokeSpecKeyHooks(
     target,
     scope,
     hookType,
@@ -136,7 +140,7 @@ export async function invokeAllSpecifiedKeyHooks(
     suppressErrors,
     errors
   );
-  await invokeSpecifiedKeyArrayHooks(
+  await invokeSpecKeyArrayHooks(
     target,
     scope,
     hookType,
@@ -148,7 +152,7 @@ export async function invokeAllSpecifiedKeyHooks(
 
 export async function invokeHook(
   hook: ModuleHookConfig,
-  target: ModuleInstance | ModuleInstance[],
+  target: ModuleConfig | ModuleConfig[],
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
@@ -158,7 +162,7 @@ export async function invokeHook(
 
   hook.lock = true;
   try {
-    await hook.callback(target);
+    await invokeHookCallback(hook, target);
     hook.lock = false;
     hook.called = true;
   } catch (e) {
@@ -173,10 +177,15 @@ export async function invokeHook(
 
 export async function invokeAnyHook(
   hook: ModuleHookConfig,
-  target: ModuleInstance,
+  target: ModuleConfig,
   suppressErrors?: boolean,
   errors?: Error[]
-) {
+): Promise<void> {
+  const id = target.id;
+  if (!id) {
+    return;
+  }
+
   if (!hook.lockFor) {
     hook.lockFor = new Map();
   }
@@ -185,17 +194,17 @@ export async function invokeAnyHook(
     hook.calledFor = new Map();
   }
 
-  if (hook.lockFor.get(target.id!) || hook.calledFor.get(target.id!)) {
+  if (hook.lockFor.get(id) || hook.calledFor.get(id)) {
     return;
   }
 
-  hook.lockFor.set(target.id!, true);
+  hook.lockFor.set(id, true);
   try {
-    await hook.callback(target);
-    hook.lockFor.set(target.id!, false);
-    hook.calledFor.set(target.id!, true);
+    await invokeHookCallback(hook, target);
+    hook.lockFor.set(id, false);
+    hook.calledFor.set(id, true);
   } catch (e) {
-    hook.lockFor.set(target.id!, false);
+    hook.lockFor.set(id, false);
     if (suppressErrors) {
       errors?.push(e as Error);
     } else {
@@ -204,10 +213,24 @@ export async function invokeAnyHook(
   }
 }
 
+export async function invokeHookCallback(
+  hook: ModuleHookConfig,
+  target: ModuleConfig | ModuleConfig[]
+): Promise<void> {
+  if (Array.isArray(target)) {
+    const resolvedArray = target.map(c => c.resolved).filter(r => !!r);
+    if (resolvedArray.length === target.length) {
+      await hook.callback(resolvedArray);
+    }
+  } else if (target.resolved) {
+    await hook.callback(target.resolved);
+  }
+}
+
 export function areAllModulesInstalled(scope: ModuleScope): boolean {
   return scope.modules.isInstalled();
 }
 
-export function getAllModules(scope: ModuleScope): ModuleInstance<any, any>[] {
-  return scope.modules.toArray();
+export function getAllModules(scope: ModuleScope): ModuleConfig<any, any>[] {
+  return scope.modules.toArray().map(m => m.config);
 }
