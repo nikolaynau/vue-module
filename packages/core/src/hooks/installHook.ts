@@ -1,6 +1,6 @@
-import { moduleEquals } from '../module';
-import { type ModuleHookType, type ModuleInstance } from '../types';
+import type { ModuleHookType, ModuleInstance } from '../types';
 import {
+  areAllModulesInstalled,
   getAllModules,
   invokeAllKeyHooks,
   invokeAllSpecifiedKeyHooks,
@@ -34,37 +34,60 @@ async function invokeDependentHooks(
     return;
   }
 
-  for (const depModule of getAllModules(scope)) {
-    const isCurrentModule = moduleEquals(currentModule, depModule);
+  await invokeAllSpecifiedKeyHooks(
+    currentModule,
+    scope,
+    hookType,
+    undefined,
+    suppressErrors,
+    errors
+  );
 
-    if (isCurrentModule) {
-      await invokeAllSpecifiedKeyHooks(
-        depModule,
-        scope,
+  await invokeAnyKeyHooks(
+    currentModule,
+    currentModule,
+    hookType,
+    suppressErrors,
+    errors
+  );
+
+  const filteredModules = getAllModules(scope).filter(
+    m => !currentModule.equals(m) && m.isInstalled
+  );
+
+  if (filteredModules.length > 0) {
+    for (const targetModule of filteredModules) {
+      if (currentModule.name) {
+        await invokeAllSpecifiedKeyHooks(
+          targetModule,
+          scope,
+          hookType,
+          currentModule.name,
+          suppressErrors,
+          errors
+        );
+      }
+
+      await invokeAnyKeyHooks(
+        currentModule,
+        targetModule,
         hookType,
-        undefined,
-        suppressErrors,
-        errors
-      );
-    } else if (currentModule.name) {
-      await invokeAllSpecifiedKeyHooks(
-        depModule,
-        scope,
-        hookType,
-        currentModule.name,
         suppressErrors,
         errors
       );
     }
+  }
 
-    await invokeAnyKeyHooks(
-      currentModule,
-      depModule,
-      hookType,
-      suppressErrors,
-      errors
-    );
-
-    await invokeAllKeyHooks(depModule, scope, hookType, suppressErrors, errors);
+  const allModulesInstalled = areAllModulesInstalled(scope);
+  if (allModulesInstalled) {
+    for (const targetModule of getAllModules(scope)) {
+      await invokeAllKeyHooks(
+        targetModule,
+        scope,
+        hookType,
+        suppressErrors,
+        errors
+      );
+    }
   }
 }

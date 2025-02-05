@@ -87,7 +87,7 @@ describe('invokeNullKeyHooks', () => {
 });
 
 describe('invokeAllKeyHooks', () => {
-  it('should call the callback for hooks with the "all" key if all modules are installed', async () => {
+  it('should call the callback for hooks with the "all" key', async () => {
     const callback = vi.fn(() => Promise.resolve());
     const hook: ModuleHookConfig = {
       type: TEST_HOOK_TYPE,
@@ -109,28 +109,6 @@ describe('invokeAllKeyHooks', () => {
     expect(hook.called).toBe(true);
 
     expect(callback).toHaveBeenCalledWith([fakeModule]);
-  });
-
-  it('should not call the callback for hooks with the "all" key if not all modules are installed', async () => {
-    const callback = vi.fn(() => Promise.resolve());
-    const hook: ModuleHookConfig = {
-      type: TEST_HOOK_TYPE,
-      key: ModuleHookKey.All,
-      callback,
-      lock: false,
-      called: false
-    };
-    const moduleInstance = { hooks: [hook] } as ModuleInstance;
-    const scope = createTestScope();
-
-    const promise = invokeAllKeyHooks(moduleInstance, scope, TEST_HOOK_TYPE);
-
-    expect(hook.lock).toBe(false);
-    await promise;
-    expect(hook.lock).toBe(false);
-    expect(hook.called).toBe(false);
-
-    expect(callback).not.toHaveBeenCalled();
   });
 });
 

@@ -22,13 +22,15 @@ export function isModuleLoader<
 }
 
 export function moduleEquals(
-  first: ModuleInstance<any, any>,
-  second: ModuleInstance<any, any>
+  first?: ModuleInstance<any, any>,
+  second?: ModuleInstance<any, any>
 ): boolean {
   return Boolean(
-    first === second ||
-      (first.config && second.config && first.config === second.config) ||
-      (first.name && second.name && first.name === second.name)
+    first &&
+      second &&
+      (first === second ||
+        (first.config && second.config && first.config === second.config) ||
+        (first.name && second.name && first.name === second.name))
   );
 }
 

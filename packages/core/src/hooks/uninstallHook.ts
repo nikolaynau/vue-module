@@ -1,4 +1,3 @@
-import { moduleEquals } from '../module';
 import { type ModuleHookType, type ModuleInstance } from '../types';
 import {
   getAllModules,
@@ -33,35 +32,47 @@ async function invokeDependentHooks(
     return;
   }
 
-  for (const depModule of getAllModules(scope)) {
-    const isCurrentModule = moduleEquals(currentModule, depModule);
+  await invokeSpecifiedKeyHooks(
+    currentModule,
+    scope,
+    hookType,
+    undefined,
+    suppressErrors,
+    errors
+  );
 
-    if (isCurrentModule) {
-      await invokeSpecifiedKeyHooks(
-        depModule,
-        scope,
+  await invokeAnyKeyHooks(
+    currentModule,
+    currentModule,
+    hookType,
+    suppressErrors,
+    errors
+  );
+
+  const filteredModules = getAllModules(scope).filter(
+    m => !currentModule.equals(m) && m.isInstalled
+  );
+
+  if (filteredModules.length > 0) {
+    for (const targetModule of filteredModules) {
+      if (currentModule.name) {
+        await invokeSpecifiedKeyHooks(
+          targetModule,
+          scope,
+          hookType,
+          currentModule.name,
+          suppressErrors,
+          errors
+        );
+      }
+
+      await invokeAnyKeyHooks(
+        currentModule,
+        targetModule,
         hookType,
-        undefined,
-        suppressErrors,
-        errors
-      );
-    } else if (currentModule.name) {
-      await invokeSpecifiedKeyHooks(
-        depModule,
-        scope,
-        hookType,
-        currentModule.name,
         suppressErrors,
         errors
       );
     }
-
-    await invokeAnyKeyHooks(
-      currentModule,
-      depModule,
-      hookType,
-      suppressErrors,
-      errors
-    );
   }
 }

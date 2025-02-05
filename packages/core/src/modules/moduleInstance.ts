@@ -9,7 +9,7 @@ import type {
 } from '../types';
 import { callInstallHook, callUninstallHook } from '../hooks';
 import { loadModule } from '../loader';
-import { isModuleInstalled, disposeModule } from '../module';
+import { isModuleInstalled, disposeModule, moduleEquals } from '../module';
 
 export class ModuleClass<
   T extends ModuleOptions = ModuleOptions,
@@ -70,6 +70,10 @@ export class ModuleClass<
       await callUninstallHook(this, this.ignoreHookErrors, this.hookErrors);
       this._handleUninstall();
     }
+  }
+
+  public equals(other?: ModuleInstance<any, any>): boolean {
+    return moduleEquals(this, other);
   }
 
   private async _handleInstall(): Promise<void> {

@@ -84,7 +84,8 @@ describe('callInstallHook', () => {
     const currentModule = {
       name: 'test-module',
       isInstalled: true,
-      scope
+      scope,
+      equals: () => false
     } as ModuleInstance;
 
     await callInstallHook(currentModule);
@@ -157,14 +158,16 @@ describe('callInstallHook', () => {
     const modules: ModuleInstance[] = [];
     const scope: ModuleScope = {
       modules: {
-        toArray: () => modules
+        toArray: () => modules,
+        isInstalled: () => true
       } as ModuleManager
     } as any;
 
     const currentModule = {
       name: 'test-module',
       isInstalled: true,
-      scope
+      scope,
+      equals: () => false
     } as ModuleInstance;
     modules.push(currentModule);
 

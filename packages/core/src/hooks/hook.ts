@@ -36,14 +36,10 @@ export async function invokeAllKeyHooks(
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
-    const allModulesInstalled = areAllModulesInstalled(scope);
+    const modules = getAllModules(scope);
 
-    if (allModulesInstalled) {
-      const configs = getAllModules(scope);
-
-      for (const hook of hooksToCall) {
-        await invokeHook(hook, configs, suppressErrors, errors);
-      }
+    for (const hook of hooksToCall) {
+      await invokeHook(hook, modules, suppressErrors, errors);
     }
   }
 }
@@ -152,7 +148,7 @@ export async function invokeAllSpecifiedKeyHooks(
 
 export async function invokeHook(
   hook: ModuleHookConfig,
-  moduleInstance: ModuleInstance | ModuleInstance[],
+  target: ModuleInstance | ModuleInstance[],
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
@@ -163,7 +159,7 @@ export async function invokeHook(
 
   hook.lock = canLock;
   try {
-    await hook.callback(moduleInstance);
+    await hook.callback(target);
     hook.lock = false;
     hook.called = canLock;
   } catch (e) {

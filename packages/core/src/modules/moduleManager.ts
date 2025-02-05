@@ -13,7 +13,7 @@ export class ModuleManagerClass implements ModuleManager {
   private _moduleMap: Map<string, ModuleInstance> = new Map();
   private _scope: ModuleScope | undefined;
 
-  constructor(modules: ModuleInstance[]) {
+  constructor(modules: ModuleInstance<any, any>[]) {
     this._initialize(modules);
   }
 
@@ -115,10 +115,14 @@ export class ModuleManagerClass implements ModuleManager {
         await instance.uninstall();
       }
     } else {
+      const executionOptions = {
+        ...args[1],
+        parallel: false
+      } satisfies ModuleExecutionOptions;
       await this._executeModulesInOrder(
         instance => instance.uninstall(),
         args[0],
-        args[1]
+        executionOptions
       );
     }
   }
@@ -199,16 +203,24 @@ export class ModuleManagerClass implements ModuleManager {
       moduleGroups[groupKey].push(_module);
     }
 
+    const sequentialExecutionOptions: ModuleExecutionOptions = Object.assign(
+      {},
+      options,
+      { parallel: false } satisfies ModuleExecutionOptions
+    );
+
     for (const moduleGroup of [
-      moduleGroups.pre,
-      moduleGroups.default,
-      moduleGroups.post,
-      moduleGroups.fin
-    ]) {
-      if (moduleGroup.length > 0) {
+      [moduleGroups.pre, sequentialExecutionOptions],
+      [moduleGroups.default, options],
+      [moduleGroups.post, sequentialExecutionOptions],
+      [moduleGroups.fin, sequentialExecutionOptions]
+    ] satisfies [ModuleInstance[], ModuleExecutionOptions | undefined][]) {
+      const [modules, executionOptions] = moduleGroup;
+
+      if (modules.length > 0) {
         await handlePromises(
-          moduleGroup.map(m => () => fn(m)),
-          options
+          modules.map(m => () => fn(m)),
+          executionOptions
         );
       }
     }

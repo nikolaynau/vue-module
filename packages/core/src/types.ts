@@ -182,6 +182,7 @@ export interface ModuleInstance<
 
   install(): Promise<void>;
   uninstall(): Promise<void>;
+  equals(other?: ModuleInstance<any, any>): boolean;
 }
 
 export interface ModuleManager {
@@ -242,7 +243,7 @@ export interface ModuleManager {
 
   uninstall(
     filter?: (instance: ModuleInstance) => boolean,
-    options?: ModuleExecutionOptions
+    options?: ModuleErrorHandlingOptions
   ): Promise<void>;
   uninstall(config: ModuleConfig): Promise<void>;
   uninstall(name: ModuleKey): Promise<void>;

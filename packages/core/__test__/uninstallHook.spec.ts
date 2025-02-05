@@ -73,7 +73,8 @@ describe('callUninstallHook', () => {
     const currentModule = {
       name: 'test-module',
       isInstalled: true,
-      scope
+      scope,
+      equals: () => false
     } as ModuleInstance;
 
     await callUninstallHook(currentModule);
@@ -149,7 +150,8 @@ describe('callUninstallHook', () => {
     const currentModule = {
       name: 'test-module',
       isInstalled: true,
-      scope
+      scope,
+      equals: () => false
     } as ModuleInstance;
     modules.push(currentModule);
 
