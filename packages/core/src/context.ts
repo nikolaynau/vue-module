@@ -38,21 +38,25 @@ export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
 
   function onHook(type: ModuleHookType, nameOrFn: unknown, fn?: unknown): void {
     if (typeof nameOrFn === 'function') {
-      _hooks.push({
-        key: null,
-        type,
-        callback: nameOrFn as ModuleHookCallback
-      });
+      _hooks.push(createHookConfig(null, type, nameOrFn as ModuleHookCallback));
     } else if (
       (typeof nameOrFn === 'string' || Array.isArray(nameOrFn)) &&
       typeof fn === 'function'
     ) {
-      _hooks.push({
-        key: nameOrFn,
-        type,
-        callback: fn as ModuleHookCallback
-      });
+      _hooks.push(createHookConfig(nameOrFn, type, fn as ModuleHookCallback));
     }
+  }
+
+  function createHookConfig(
+    key: ModuleHookConfig['key'],
+    type: ModuleHookType,
+    callback: ModuleHookConfig['callback']
+  ): ModuleHookConfig {
+    return {
+      key,
+      type,
+      callback
+    };
   }
 
   const context: InternalModuleContext<T> = {

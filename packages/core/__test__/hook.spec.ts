@@ -3,6 +3,7 @@ import {
   areAllModulesInstalled,
   getAllModules,
   invokeAllKeyHooks,
+  invokeAnyHook,
   invokeAnyKeyHooks,
   invokeHook,
   invokeNullKeyHooks,
@@ -306,27 +307,6 @@ describe('invokeHook', () => {
     expect(callback).toHaveBeenCalledWith(moduleInstance);
   });
 
-  it('should not set the called flag for a hook with the key "any"', async () => {
-    const callback = vi.fn(() => Promise.resolve());
-    const hook: ModuleHookConfig = {
-      type: TEST_HOOK_TYPE,
-      key: 'any',
-      callback,
-      lock: false,
-      called: false
-    };
-    const moduleInstance = { name: 'module' } as ModuleInstance;
-
-    const promise = invokeHook(hook, moduleInstance);
-
-    expect(hook.lock).toBe(false);
-    await promise;
-    expect(hook.lock).toBe(false);
-    expect(hook.called).toBe(false);
-
-    expect(callback).toHaveBeenCalledWith(moduleInstance);
-  });
-
   it('should add the error to errors when suppressErrors is true', async () => {
     const errorObj = new Error('callback failed');
     const callback = vi.fn(() => Promise.reject(errorObj));
@@ -367,6 +347,65 @@ describe('invokeHook', () => {
     );
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(false);
+  });
+});
+
+describe('invokeAnyHook', () => {
+  it('should successfully call the callback and update the lockFor and calledFor map', async () => {
+    const callback = vi.fn(() => Promise.resolve());
+    const hook: ModuleHookConfig = {
+      type: TEST_HOOK_TYPE,
+      key: 'someKey',
+      callback
+    };
+    const moduleInstance = { name: 'module', id: Symbol() } as ModuleInstance;
+
+    const promise = invokeAnyHook(hook, moduleInstance);
+
+    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(true);
+    await promise;
+    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(false);
+    expect(hook.calledFor?.get(moduleInstance.id!)).toBe(true);
+
+    expect(callback).toHaveBeenCalledWith(moduleInstance);
+  });
+
+  it('should add the error to errors when suppressErrors is true', async () => {
+    const errorObj = new Error('callback failed');
+    const callback = vi.fn(() => Promise.reject(errorObj));
+    const hook: ModuleHookConfig = {
+      type: TEST_HOOK_TYPE,
+      key: 'someKey',
+      callback
+    };
+    const moduleInstance = { name: 'module', id: Symbol() } as ModuleInstance;
+    const errors: Error[] = [];
+
+    const promise = invokeAnyHook(hook, moduleInstance, true, errors);
+
+    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(true);
+    await promise;
+    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(false);
+    expect(hook.calledFor?.has(moduleInstance.id!)).toBe(false);
+
+    expect(errors).toContain(errorObj);
+  });
+
+  it('should throw the error when suppressErrors is false', async () => {
+    const errorObj = new Error('callback failed');
+    const callback = vi.fn(() => Promise.reject(errorObj));
+    const hook: ModuleHookConfig = {
+      type: TEST_HOOK_TYPE,
+      key: 'someKey',
+      callback
+    };
+    const moduleInstance = { name: 'module', id: Symbol() } as ModuleInstance;
+
+    await expect(invokeAnyHook(hook, moduleInstance, false)).rejects.toThrow(
+      errorObj
+    );
+    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(false);
+    expect(hook.calledFor?.has(moduleInstance.id!)).toBe(false);
   });
 });
 

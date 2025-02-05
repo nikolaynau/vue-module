@@ -22,6 +22,10 @@ export class ModuleClass<
 
   constructor(private _config: ModuleConfig<T, R>) {}
 
+  public get id(): symbol | undefined {
+    return this._config.id;
+  }
+
   public get config(): ModuleConfig<T, R> {
     return this._config;
   }
@@ -34,11 +38,11 @@ export class ModuleClass<
     return this._config.resolved?.meta;
   }
 
-  get name(): string | undefined {
+  public get name(): string | undefined {
     return this._config.resolved?.meta?.name;
   }
 
-  get version(): string | undefined {
+  public get version(): string | undefined {
     return this._config.resolved?.meta?.version;
   }
 
@@ -50,7 +54,7 @@ export class ModuleClass<
     return this._config.resolved?.options;
   }
 
-  get hooks(): ModuleHookConfig[] | undefined {
+  public get hooks(): ModuleHookConfig[] | undefined {
     return this._config.resolved?.hooks;
   }
 

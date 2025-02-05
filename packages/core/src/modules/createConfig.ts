@@ -32,7 +32,9 @@ export function createConfig<
     options,
     enforce,
     deps,
-    resolved: undefined
+    resolved: undefined,
+    scope: undefined,
+    id: Symbol()
   };
 
   return config;

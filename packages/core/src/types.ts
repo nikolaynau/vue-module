@@ -55,7 +55,7 @@ export type ModuleLoader<
 export type ModuleLoadConfig<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
-> = Omit<ModuleConfig<T, R>, 'resolved'>;
+> = Omit<ModuleConfig<T, R>, 'resolved' | 'id' | 'scope'>;
 
 export interface ModuleConfig<
   T extends ModuleOptions = ModuleOptions,
@@ -67,6 +67,7 @@ export interface ModuleConfig<
   deps?: ModuleDep[];
   resolved?: ResolvedModule<T, R>;
   scope?: ModuleScope;
+  id?: symbol;
 }
 
 export type ModuleHookType = 'installed' | 'uninstall';
@@ -86,6 +87,8 @@ export interface ModuleHookConfig {
   callback: ModuleHookCallback;
   lock?: boolean;
   called?: boolean;
+  lockFor?: Map<symbol, boolean>;
+  calledFor?: Map<symbol, boolean>;
 }
 
 export interface ResolvedModule<
@@ -170,6 +173,7 @@ export interface ModuleState<
   readonly options: ResolvedModule<T, R>['options'];
   readonly hooks: ResolvedModule<T, R>['hooks'] | undefined;
   readonly scope: ModuleConfig<T, R>['scope'];
+  readonly id: ModuleConfig<T, R>['id'];
   readonly isInstalled: boolean;
 }
 

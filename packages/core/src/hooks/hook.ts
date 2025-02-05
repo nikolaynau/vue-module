@@ -57,7 +57,7 @@ export async function invokeAnyKeyHooks(
 
   if (hooksToCall && hooksToCall.length > 0) {
     for (const hook of hooksToCall) {
-      await invokeHook(hook, source, suppressErrors, errors);
+      await invokeAnyHook(hook, source, suppressErrors, errors);
     }
   }
 }
@@ -152,18 +152,50 @@ export async function invokeHook(
   suppressErrors?: boolean,
   errors?: Error[]
 ) {
-  const canLock = hook.key !== ModuleHookKey.Any;
-  if (canLock && (hook.lock || hook.called)) {
+  if (hook.lock || hook.called) {
     return;
   }
 
-  hook.lock = canLock;
+  hook.lock = true;
   try {
     await hook.callback(target);
     hook.lock = false;
-    hook.called = canLock;
+    hook.called = true;
   } catch (e) {
     hook.lock = false;
+    if (suppressErrors) {
+      errors?.push(e as Error);
+    } else {
+      throw e;
+    }
+  }
+}
+
+export async function invokeAnyHook(
+  hook: ModuleHookConfig,
+  target: ModuleInstance,
+  suppressErrors?: boolean,
+  errors?: Error[]
+) {
+  if (!hook.lockFor) {
+    hook.lockFor = new Map();
+  }
+
+  if (!hook.calledFor) {
+    hook.calledFor = new Map();
+  }
+
+  if (hook.lockFor.get(target.id!) || hook.calledFor.get(target.id!)) {
+    return;
+  }
+
+  hook.lockFor.set(target.id!, true);
+  try {
+    await hook.callback(target);
+    hook.lockFor.set(target.id!, false);
+    hook.calledFor.set(target.id!, true);
+  } catch (e) {
+    hook.lockFor.set(target.id!, false);
     if (suppressErrors) {
       errors?.push(e as Error);
     } else {

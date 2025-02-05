@@ -85,66 +85,66 @@ describe('Install Hooks', () => {
     vi.restoreAllMocks();
   });
 
-  // it('should call onInstalled with array when modules are installed', async () => {
-  //   const mockInstallHook = vi
-  //     .fn()
-  //     .mockImplementation(([moduleA, moduleB]: ModuleInstance[]) => {
-  //       expect(moduleA.isInstalled).toBe(true);
-  //       expect(moduleB.isInstalled).toBe(true);
+  it('should call onInstalled with array when modules are installed', async () => {
+    const mockInstallHook = vi
+      .fn()
+      .mockImplementation(([moduleA, moduleB]: ModuleInstance[]) => {
+        expect(moduleA.isInstalled).toBe(true);
+        expect(moduleB.isInstalled).toBe(true);
 
-  //       expect(moduleA.exports).toEqual({ bar: 'baz' });
-  //       expect(moduleB.exports).toEqual({ a: '1', b: 2 });
-  //     });
+        expect(moduleA.exports).toEqual({ bar: 'baz' });
+        expect(moduleB.exports).toEqual({ a: '1', b: 2 });
+      });
 
-  //   const moduleA = createTestModule<{ foo?: string }, { bar: string }>(
-  //     'moduleA',
-  //     () => ({ bar: 'baz' })
-  //   );
-  //   const moduleB = createTestModule<
-  //     { foo?: string },
-  //     { a: string; b: number }
-  //   >('moduleB', () => ({ a: '1', b: 2 }));
+    const moduleA = createTestModule<{ foo?: string }, { bar: string }>(
+      'moduleA',
+      () => ({ bar: 'baz' })
+    );
+    const moduleB = createTestModule<
+      { foo?: string },
+      { a: string; b: number }
+    >('moduleB', () => ({ a: '1', b: 2 }));
 
-  //   const moduleC = createTestModule<
-  //     { foo?: string },
-  //     { a: string; b: number }
-  //   >('moduleC', ({ onInstalled }) => {
-  //     onInstalled(['moduleA', 'moduleB'], mockInstallHook);
-  //   });
+    const moduleC = createTestModule<
+      { foo?: string },
+      { a: string; b: number }
+    >('moduleC', ({ onInstalled }) => {
+      onInstalled(['moduleA', 'moduleB'], mockInstallHook);
+    });
 
-  //   const modules = createModules([moduleB, moduleC, moduleA]);
+    const modules = createModules([moduleB, moduleC, moduleA]);
 
-  //   await modules.install();
+    await modules.install();
 
-  //   expect(modules.get('moduleA')).not.toBeUndefined();
-  //   expect(modules.get('moduleA')?.exports).toEqual({ bar: 'baz' });
-  //   expect(modules.get('moduleA')?.isInstalled).toBe(true);
+    expect(modules.get('moduleA')).not.toBeUndefined();
+    expect(modules.get('moduleA')?.exports).toEqual({ bar: 'baz' });
+    expect(modules.get('moduleA')?.isInstalled).toBe(true);
 
-  //   expect(modules.get('moduleB')).not.toBeUndefined();
-  //   expect(modules.get('moduleB')?.exports).toEqual({ a: '1', b: 2 });
-  //   expect(modules.get('moduleB')?.isInstalled).toBe(true);
+    expect(modules.get('moduleB')).not.toBeUndefined();
+    expect(modules.get('moduleB')?.exports).toEqual({ a: '1', b: 2 });
+    expect(modules.get('moduleB')?.isInstalled).toBe(true);
 
-  //   expect(modules.get('moduleC')).not.toBeUndefined();
-  //   expect(modules.get('moduleC')?.exports).toBeUndefined();
-  //   expect(modules.get('moduleC')?.isInstalled).toBe(true);
+    expect(modules.get('moduleC')).not.toBeUndefined();
+    expect(modules.get('moduleC')?.exports).toBeUndefined();
+    expect(modules.get('moduleC')?.isInstalled).toBe(true);
 
-  //   expect(mockInstallHook).toHaveBeenCalledOnce();
-  //   expect(mockInstallHook).toHaveBeenCalledWith([moduleA, moduleB]);
-  // });
+    expect(mockInstallHook).toHaveBeenCalledOnce();
+    expect(mockInstallHook).toHaveBeenCalledWith([moduleA, moduleB]);
+  });
 
   it.each([
-    [1, 2, 3, false]
-    // [1, 3, 2, false],
-    // [2, 1, 3, false],
-    // [2, 3, 1, false],
-    // [3, 1, 2, false],
-    // [3, 2, 1, false],
-    //[1, 2, 3, true]
-    // [1, 3, 2, true],
-    // [2, 1, 3, true],
-    // [2, 3, 1, true],
-    // [3, 1, 2, true],
-    // [3, 2, 1, true]
+    [1, 2, 3, false],
+    [1, 3, 2, false],
+    [2, 1, 3, false],
+    [2, 3, 1, false],
+    [3, 1, 2, false],
+    [3, 2, 1, false],
+    [1, 2, 3, true],
+    [1, 3, 2, true],
+    [2, 1, 3, true],
+    [2, 3, 1, true],
+    [3, 1, 2, true],
+    [3, 2, 1, true]
   ])(
     'calls all installed hooks when modules are installed sequentially in different orders',
     async (a1, a2, a3, parallel) => {
@@ -249,19 +249,10 @@ function verifyInstallModuleHooks(
     )
   ).toEqual([testName, dep2Name]);
 
-  console.log(
-    'testModule.anyKeyHook.mock.calls.map(c => c[0].name)',
-    testModule.testModule.name,
-    'dep1',
-    dep1Name,
-    'dep2',
-    dep2Name,
-    testModule.anyKeyHook.mock.calls.map(c => c[0].name)
+  expect(testModule.anyKeyHook).toHaveBeenCalledTimes(3);
+  expect(testModule.anyKeyHook.mock.calls.map(c => c[0].name)).toEqual(
+    expect.arrayContaining([testName, dep1Name, dep2Name])
   );
-  //expect(testModule.anyKeyHook).toHaveBeenCalledTimes(1);
-  //expect(testModule.anyKeyHook.mock.calls.map(c => c[0].name)).toEqual(
-  //expect.arrayContaining([testName, dep1Name, dep2Name])
-  //);
 
   expect(testModule.allKeyHook).toHaveBeenCalledOnce();
   expect(

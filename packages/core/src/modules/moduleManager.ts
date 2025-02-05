@@ -64,7 +64,7 @@ export class ModuleManagerClass implements ModuleManager {
       return this._moduleMap.has(arg);
     }
     if (this._isInstance(arg)) {
-      return this._modules.includes(arg);
+      return this._modules.findIndex(item => item.equals(arg)) !== -1;
     }
     return Boolean(this._getForConfig(arg as ModuleConfig));
   }
@@ -156,6 +156,13 @@ export class ModuleManagerClass implements ModuleManager {
     this._modules.push(instance);
   }
 
+  private _removeModule(instance: ModuleInstance): void {
+    if (instance.name) {
+      this._moduleMap.delete(instance.name);
+    }
+    this._removeFromArray(item => item.equals(instance));
+  }
+
   private _removeFromArray(
     predicate: (instance: ModuleInstance) => boolean
   ): void {
@@ -165,21 +172,21 @@ export class ModuleManagerClass implements ModuleManager {
     }
   }
 
-  private _removeModule(instance: ModuleInstance): void {
-    if (instance.name) {
-      this._moduleMap.delete(instance.name);
-    }
-    this._removeFromArray(item => item === instance);
-  }
-
   private _isInstance(value: any): value is ModuleInstance {
     return typeof value === 'object' && value !== null && 'config' in value;
   }
 
   private _getForConfig(config?: ModuleConfig): ModuleInstance | undefined {
+    const predicate: (
+      item: ModuleInstance<any, any>
+    ) => boolean | undefined = item =>
+      config &&
+      (item.config === config ||
+        (item.config.id && config.id && item.config.id === config.id));
+
     return config?.resolved?.meta?.name
       ? this._moduleMap.get(config.resolved.meta.name)
-      : this._modules.find(item => item.config === config);
+      : this._modules.find(predicate);
   }
 
   private async _executeModulesInOrder(

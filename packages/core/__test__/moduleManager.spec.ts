@@ -10,7 +10,7 @@ import {
 } from 'vitest';
 import { ModuleManagerClass } from '../src/modules/moduleManager';
 import * as promiseUtils from '../src/promise';
-
+import { moduleEquals } from '../src/module';
 import type {
   ModuleConfig,
   ModuleInstance,
@@ -37,6 +37,7 @@ function createTestModule(name: string, installed = false): ModuleInstance {
     uninstall: vi.fn(async () => {
       installed = false;
     }),
+    equals: obj => moduleEquals(instance, obj),
     meta: undefined,
     version: undefined,
     exports: undefined,
@@ -44,7 +45,8 @@ function createTestModule(name: string, installed = false): ModuleInstance {
     hooks: undefined,
     scope: undefined,
     ignoreHookErrors: false,
-    hookErrors: []
+    hookErrors: [],
+    id: undefined
   };
   return instance;
 }

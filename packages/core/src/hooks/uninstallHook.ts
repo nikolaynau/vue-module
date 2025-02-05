@@ -49,12 +49,12 @@ async function invokeDependentHooks(
     errors
   );
 
-  const filteredModules = getAllModules(scope).filter(
+  const otherModules = getAllModules(scope).filter(
     m => !currentModule.equals(m) && m.isInstalled
   );
 
-  if (filteredModules.length > 0) {
-    for (const targetModule of filteredModules) {
+  if (otherModules.length > 0) {
+    for (const targetModule of otherModules) {
       if (currentModule.name) {
         await invokeSpecifiedKeyHooks(
           targetModule,

@@ -28,8 +28,10 @@ export function moduleEquals(
   return Boolean(
     first &&
       second &&
-      (first === second ||
-        (first.config && second.config && first.config === second.config) ||
+      ((first.config && second.config && first.config === second.config) ||
+        (first.config.id &&
+          second.config.id &&
+          first.config.id === second.config.id) ||
         (first.name && second.name && first.name === second.name))
   );
 }
