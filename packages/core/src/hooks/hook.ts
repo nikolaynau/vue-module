@@ -3,7 +3,8 @@ import {
   type ModuleHookConfig,
   type ModuleHookType,
   type ModuleConfig,
-  type ModuleScope
+  type ModuleScope,
+  type ResolvedModule
 } from '../types';
 
 export async function invokeNullKeyHooks(
@@ -80,10 +81,10 @@ export async function invokeSpecKeyHooks(
 
   if (hooksToCall && hooksToCall.length > 0) {
     for (const hook of hooksToCall) {
-      const depModule = scope.modules.get(hook.key as string);
+      const module = scope.modules.get(hook.key as string);
 
-      if (depModule?.isInstalled) {
-        await invokeHook(hook, depModule.config, suppressErrors, errors);
+      if (module?.isInstalled()) {
+        await invokeHook(hook, module.config, suppressErrors, errors);
       }
     }
   }
@@ -106,12 +107,14 @@ export async function invokeSpecKeyArrayHooks(
   );
 
   if (hooksToCall && hooksToCall.length > 0) {
+    const moduleMap = scope.modules.toMap();
+
     for (const hook of hooksToCall) {
       const keys = hook.key as string[];
       const configs: ModuleConfig[] = [];
 
       for (const key of keys) {
-        const module = scope.modules.get(key);
+        const module = moduleMap.get(key);
         if (module?.isInstalled()) {
           configs.push(module.config);
         }
@@ -218,7 +221,9 @@ export async function invokeHookCallback(
   target: ModuleConfig | ModuleConfig[]
 ): Promise<void> {
   if (Array.isArray(target)) {
-    const resolvedArray = target.map(c => c.resolved).filter(r => !!r);
+    const resolvedArray = target
+      .map(c => c.resolved)
+      .filter(r => !!r) as ResolvedModule[];
     if (resolvedArray.length === target.length) {
       await hook.callback(resolvedArray);
     }

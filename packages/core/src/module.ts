@@ -31,6 +31,12 @@ export function getModuleExports<R extends ModuleSetupReturn>(
   return config.resolved?.exports;
 }
 
+export function getModuleOptions<T extends ModuleOptions>(
+  config: ModuleConfig<T, any>
+): T | undefined {
+  return config.resolved?.options;
+}
+
 export function isModuleLoader<
   T extends ModuleOptions,
   R extends ModuleSetupReturn

@@ -7,16 +7,18 @@ import {
   invokeAnyKeyHooks,
   invokeHook,
   invokeNullKeyHooks,
-  invokeSpecifiedKeyArrayHooks,
-  invokeSpecifiedKeyHooks
+  invokeSpecKeyArrayHooks,
+  invokeSpecKeyHooks
 } from '../src/hooks/hook';
 import {
   ModuleHookKey,
+  type ModuleConfig,
   type ModuleHookConfig,
   type ModuleHookType,
   type ModuleInstance,
   type ModuleManager,
-  type ModuleScope
+  type ModuleScope,
+  type ResolvedModule
 } from '../src/types';
 
 function createTestScope(
@@ -53,16 +55,16 @@ describe('invokeNullKeyHooks', () => {
       lock: false,
       called: false
     };
-    const moduleInstance = { hooks: [hook] } as ModuleInstance;
+    const moduleConfig = { resolved: { hooks: [hook] } } as ModuleConfig;
 
-    const promise = invokeNullKeyHooks(moduleInstance, TEST_HOOK_TYPE);
+    const promise = invokeNullKeyHooks(moduleConfig, TEST_HOOK_TYPE);
 
     expect(hook.lock).toBe(true);
     await promise;
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(moduleInstance);
+    expect(callback).toHaveBeenCalledWith(moduleConfig.resolved);
   });
 
   it('should not call the callback if there are no hooks with a null key', async () => {
@@ -74,9 +76,9 @@ describe('invokeNullKeyHooks', () => {
       lock: false,
       called: false
     };
-    const moduleInstance = { hooks: [hook] } as ModuleInstance;
+    const moduleConfig = { resolved: { hooks: [hook] } } as ModuleConfig;
 
-    const promise = invokeNullKeyHooks(moduleInstance, TEST_HOOK_TYPE);
+    const promise = invokeNullKeyHooks(moduleConfig, TEST_HOOK_TYPE);
 
     expect(hook.lock).toBe(false);
     await promise;
@@ -97,19 +99,22 @@ describe('invokeAllKeyHooks', () => {
       lock: false,
       called: false
     };
-    const moduleInstance = { hooks: [hook] } as ModuleInstance;
-
-    const fakeModule = { name: 'mod1' } as ModuleInstance;
+    const moduleConfig = { resolved: { hooks: [hook] } } as ModuleConfig;
+    const fakeModuleResolved = {} as ResolvedModule;
+    const fakeModule = {
+      isInstalled: () => true,
+      config: { resolved: fakeModuleResolved }
+    } as ModuleInstance;
     const scope = createTestScope(fakeModule, [fakeModule], true);
 
-    const promise = invokeAllKeyHooks(moduleInstance, scope, TEST_HOOK_TYPE);
+    const promise = invokeAllKeyHooks(moduleConfig, scope, TEST_HOOK_TYPE);
 
     expect(hook.lock).toBe(true);
     await promise;
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith([fakeModule]);
+    expect(callback).toHaveBeenCalledWith([fakeModuleResolved]);
   });
 });
 
@@ -119,21 +124,19 @@ describe('invokeAnyKeyHooks', () => {
     const hook: ModuleHookConfig = {
       type: TEST_HOOK_TYPE,
       key: ModuleHookKey.Any,
-      callback,
-      lock: false,
-      called: false
+      callback
     };
-    const target = { hooks: [hook] } as ModuleInstance;
-    const source = { name: 'source' } as ModuleInstance;
+    const target = { resolved: { hooks: [hook] } } as ModuleConfig;
+    const source = { resolved: {}, id: 1 } as ModuleConfig;
 
     const promise = invokeAnyKeyHooks(source, target, TEST_HOOK_TYPE);
 
-    expect(hook.lock).toBe(false);
+    expect(hook.lockFor?.get(source.id!)).toBe(true);
     await promise;
-    expect(hook.lock).toBe(false);
-    expect(hook.called).toBe(false);
+    expect(hook.lockFor?.get(source.id!)).toBe(false);
+    expect(hook.calledFor?.get(source.id!)).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(source);
+    expect(callback).toHaveBeenCalledWith(source.resolved);
   });
 
   it('should not call the callback if there is no matching hook', async () => {
@@ -141,25 +144,43 @@ describe('invokeAnyKeyHooks', () => {
     const hook: ModuleHookConfig = {
       type: TEST_HOOK_TYPE,
       key: 'non-any',
-      callback,
-      lock: false,
-      called: false
+      callback
     };
-    const target = { hooks: [hook] } as ModuleInstance;
-    const source = { name: 'source' } as ModuleInstance;
+    const target = { resolved: { hooks: [hook] } } as ModuleConfig;
+    const source = { resolved: {}, id: 1 } as ModuleConfig;
 
     const promise = invokeAnyKeyHooks(source, target, TEST_HOOK_TYPE);
 
-    expect(hook.lock).toBe(false);
+    expect(!!hook.lockFor?.get(source.id!)).toBe(false);
     await promise;
-    expect(hook.lock).toBe(false);
-    expect(hook.called).toBe(false);
+    expect(!!hook.lockFor?.get(source.id!)).toBe(false);
+    expect(!!hook.calledFor?.get(source.id!)).toBe(false);
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should not call the callback if config no provided id', async () => {
+    const callback = vi.fn(() => Promise.resolve());
+    const hook: ModuleHookConfig = {
+      type: TEST_HOOK_TYPE,
+      key: ModuleHookKey.Any,
+      callback
+    };
+    const target = { resolved: { hooks: [hook] } } as ModuleConfig;
+    const source = { resolved: {} } as ModuleConfig;
+
+    const promise = invokeAnyKeyHooks(source, target, TEST_HOOK_TYPE);
+
+    expect(!!hook.lockFor?.get(source.id!)).toBe(false);
+    await promise;
+    expect(!!hook.lockFor?.get(source.id!)).toBe(false);
+    expect(!!hook.calledFor?.get(source.id!)).toBe(false);
 
     expect(callback).not.toHaveBeenCalled();
   });
 });
 
-describe('invokeSpecifiedKeyHooks', () => {
+describe('invokeSpecKeyHooks', () => {
   it('should call the callback if the source has a name and hook key matches source name', async () => {
     const callback = vi.fn(() => Promise.resolve());
     const hook: ModuleHookConfig = {
@@ -169,8 +190,12 @@ describe('invokeSpecifiedKeyHooks', () => {
       lock: false,
       called: false
     };
-    const target = { hooks: [hook] } as ModuleInstance;
-    const moduleA = { name: 'moduleA', isInstalled: true } as ModuleInstance;
+    const target = { resolved: { hooks: [hook] } } as ModuleConfig;
+    const moduleA = {
+      config: { resolved: { meta: { name: 'moduleA' } } },
+      isInstalled: () => true
+    } as ModuleInstance;
+
     const scope: ModuleScope = {
       modules: {
         get: (key: string) => (key === 'moduleA' ? moduleA : undefined),
@@ -179,14 +204,14 @@ describe('invokeSpecifiedKeyHooks', () => {
       } as ModuleManager
     };
 
-    const promise = invokeSpecifiedKeyHooks(target, scope, TEST_HOOK_TYPE);
+    const promise = invokeSpecKeyHooks(target, scope, TEST_HOOK_TYPE);
 
     expect(hook.lock).toBe(true);
     await promise;
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(moduleA);
+    expect(callback).toHaveBeenCalledWith(moduleA.config.resolved);
   });
 
   it('should not call the callback if the source has no name', async () => {
@@ -198,8 +223,12 @@ describe('invokeSpecifiedKeyHooks', () => {
       lock: false,
       called: false
     };
-    const target = { hooks: [hook] } as ModuleInstance;
-    const moduleA = { name: 'moduleA', isInstalled: true } as ModuleInstance;
+    const target = { resolved: { hooks: [hook] } } as ModuleConfig;
+    const moduleA = {
+      config: { resolved: { meta: { name: 'moduleA' } } },
+      isInstalled: () => true
+    } as ModuleInstance;
+
     const scope: ModuleScope = {
       modules: {
         get: (key: string) => (key === 'moduleA' ? moduleA : undefined),
@@ -208,7 +237,7 @@ describe('invokeSpecifiedKeyHooks', () => {
       } as ModuleManager
     };
 
-    const promise = invokeSpecifiedKeyHooks(target, scope, TEST_HOOK_TYPE);
+    const promise = invokeSpecKeyHooks(target, scope, TEST_HOOK_TYPE);
 
     expect(hook.lock).toBe(false);
     await promise;
@@ -219,7 +248,7 @@ describe('invokeSpecifiedKeyHooks', () => {
   });
 });
 
-describe('invokeSpecifiedKeyArrayHooks', () => {
+describe('invokeSpecKeyArrayHooks', () => {
   it('should call the callback for hooks with an array of keys if all modules are installed', async () => {
     const callback = vi.fn(() => Promise.resolve());
     const hook: ModuleHookConfig = {
@@ -229,27 +258,40 @@ describe('invokeSpecifiedKeyArrayHooks', () => {
       lock: false,
       called: false
     };
-    const target = { hooks: [hook] } as ModuleInstance;
+    const target = { resolved: { hooks: [hook] } } as ModuleConfig;
 
-    const moduleA = { name: 'moduleA', isInstalled: true };
-    const moduleB = { name: 'moduleB', isInstalled: true };
+    const moduleA = {
+      config: { resolved: { meta: { name: 'moduleA' } } },
+      isInstalled: () => true
+    } as ModuleInstance;
+    const moduleB = {
+      config: { resolved: { meta: { name: 'moduleB' } } },
+      isInstalled: () => true
+    } as ModuleInstance;
+
+    const map = new Map();
+    map.set('moduleA', moduleA);
+    map.set('moduleB', moduleB);
+
     const scope: ModuleScope = {
       modules: {
-        get: (key: string) =>
-          key === 'moduleA' ? moduleA : key === 'moduleB' ? moduleB : undefined,
         isInstalled: () => true,
-        toArray: () => [moduleA, moduleB]
+        toArray: () => [moduleA, moduleB],
+        toMap: () => map
       } as ModuleManager
     };
 
-    const promise = invokeSpecifiedKeyArrayHooks(target, scope, TEST_HOOK_TYPE);
+    const promise = invokeSpecKeyArrayHooks(target, scope, TEST_HOOK_TYPE);
 
     expect(hook.lock).toBe(true);
     await promise;
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith([moduleA, moduleB]);
+    expect(callback).toHaveBeenCalledWith([
+      moduleA.config.resolved,
+      moduleB.config.resolved
+    ]);
   });
 
   it('should not call the callback for hooks with an array of keys if not all modules are installed', async () => {
@@ -261,20 +303,30 @@ describe('invokeSpecifiedKeyArrayHooks', () => {
       lock: false,
       called: false
     };
-    const target = { hooks: [hook] } as ModuleInstance;
+    const target = { resolved: { hooks: [hook] } } as ModuleConfig;
 
-    const moduleA = { name: 'moduleA', isInstalled: true };
-    const moduleB = { name: 'moduleB', isInstalled: false };
+    const moduleA = {
+      config: { resolved: { meta: { name: 'moduleA' } } },
+      isInstalled: () => true
+    } as ModuleInstance;
+    const moduleB = {
+      config: { resolved: { meta: { name: 'moduleB' } } },
+      isInstalled: () => false
+    } as ModuleInstance;
+
+    const map = new Map();
+    map.set('moduleA', moduleA);
+    map.set('moduleB', moduleB);
+
     const scope: ModuleScope = {
       modules: {
-        get: (key: string) =>
-          key === 'moduleA' ? moduleA : key === 'moduleB' ? moduleB : undefined,
-        isInstalled: () => false,
-        toArray: () => [moduleA, moduleB]
+        isInstalled: () => true,
+        toArray: () => [moduleA, moduleB],
+        toMap: () => map
       } as ModuleManager
     };
 
-    const promise = invokeSpecifiedKeyArrayHooks(target, scope, TEST_HOOK_TYPE);
+    const promise = invokeSpecKeyArrayHooks(target, scope, TEST_HOOK_TYPE);
 
     expect(hook.lock).toBe(false);
     await promise;
@@ -295,16 +347,16 @@ describe('invokeHook', () => {
       lock: false,
       called: false
     };
-    const moduleInstance = { name: 'module' } as ModuleInstance;
+    const target = { resolved: {} } as ModuleConfig;
 
-    const promise = invokeHook(hook, moduleInstance);
+    const promise = invokeHook(hook, target);
 
     expect(hook.lock).toBe(true);
     await promise;
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(moduleInstance);
+    expect(callback).toHaveBeenCalledWith(target.resolved);
   });
 
   it('should add the error to errors when suppressErrors is true', async () => {
@@ -317,10 +369,10 @@ describe('invokeHook', () => {
       lock: false,
       called: false
     };
-    const moduleInstance = { name: 'module' } as ModuleInstance;
+    const target = { resolved: {} } as ModuleConfig;
     const errors: Error[] = [];
 
-    const promise = invokeHook(hook, moduleInstance, true, errors);
+    const promise = invokeHook(hook, target, true, errors);
 
     expect(hook.lock).toBe(true);
     await promise;
@@ -340,11 +392,9 @@ describe('invokeHook', () => {
       lock: false,
       called: false
     };
-    const moduleInstance = { name: 'module' } as ModuleInstance;
+    const target = { resolved: {} } as ModuleConfig;
 
-    await expect(invokeHook(hook, moduleInstance, false)).rejects.toThrow(
-      errorObj
-    );
+    await expect(invokeHook(hook, target, false)).rejects.toThrow(errorObj);
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(false);
   });
@@ -358,16 +408,16 @@ describe('invokeAnyHook', () => {
       key: 'someKey',
       callback
     };
-    const moduleInstance = { name: 'module', id: Symbol() } as ModuleInstance;
+    const target = { resolved: {}, id: 1 } as ModuleConfig;
 
-    const promise = invokeAnyHook(hook, moduleInstance);
+    const promise = invokeAnyHook(hook, target);
 
-    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(true);
+    expect(hook.lockFor?.get(target.id!)).toBe(true);
     await promise;
-    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(false);
-    expect(hook.calledFor?.get(moduleInstance.id!)).toBe(true);
+    expect(hook.lockFor?.get(target.id!)).toBe(false);
+    expect(hook.calledFor?.get(target.id!)).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(moduleInstance);
+    expect(callback).toHaveBeenCalledWith(target.resolved);
   });
 
   it('should add the error to errors when suppressErrors is true', async () => {
@@ -378,15 +428,15 @@ describe('invokeAnyHook', () => {
       key: 'someKey',
       callback
     };
-    const moduleInstance = { name: 'module', id: Symbol() } as ModuleInstance;
+    const target = { resolved: {}, id: 1 } as ModuleConfig;
     const errors: Error[] = [];
 
-    const promise = invokeAnyHook(hook, moduleInstance, true, errors);
+    const promise = invokeAnyHook(hook, target, true, errors);
 
-    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(true);
+    expect(hook.lockFor?.get(target.id!)).toBe(true);
     await promise;
-    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(false);
-    expect(hook.calledFor?.has(moduleInstance.id!)).toBe(false);
+    expect(hook.lockFor?.get(target.id!)).toBe(false);
+    expect(hook.calledFor?.has(target.id!)).toBe(false);
 
     expect(errors).toContain(errorObj);
   });
@@ -399,13 +449,31 @@ describe('invokeAnyHook', () => {
       key: 'someKey',
       callback
     };
-    const moduleInstance = { name: 'module', id: Symbol() } as ModuleInstance;
+    const target = { resolved: {}, id: 1 } as ModuleConfig;
 
-    await expect(invokeAnyHook(hook, moduleInstance, false)).rejects.toThrow(
-      errorObj
-    );
-    expect(hook.lockFor?.get(moduleInstance.id!)).toBe(false);
-    expect(hook.calledFor?.has(moduleInstance.id!)).toBe(false);
+    await expect(invokeAnyHook(hook, target, false)).rejects.toThrow(errorObj);
+    expect(hook.lockFor?.get(target.id!)).toBe(false);
+    expect(hook.calledFor?.has(target.id!)).toBe(false);
+  });
+
+  it('should not call callback when target id is missing', async () => {
+    const errorObj = new Error('callback failed');
+    const callback = vi.fn(() => Promise.reject(errorObj));
+    const hook: ModuleHookConfig = {
+      type: TEST_HOOK_TYPE,
+      key: 'someKey',
+      callback
+    };
+    const target = { resolved: {} } as ModuleConfig;
+
+    const promise = invokeAnyHook(hook, target);
+
+    expect(!!hook.lockFor?.get(target.id!)).toBe(false);
+    await promise;
+    expect(!!hook.lockFor?.get(target.id!)).toBe(false);
+    expect(!!hook.calledFor?.get(target.id!)).toBe(false);
+
+    expect(callback).not.toHaveBeenCalled();
   });
 });
 
@@ -424,87 +492,88 @@ describe('areAllModulesInstalled', () => {
 describe('getAllModules', () => {
   it('returns an array of modules obtained from modules.toArray()', () => {
     const modulesArray = [
-      { name: 'mod1' },
-      { name: 'mod2' }
+      { config: { resolved: {} } },
+      { config: {} }
     ] as ModuleInstance[];
     const scope = createTestScope(undefined, modulesArray, true);
-    expect(getAllModules(scope)).toEqual(modulesArray);
+    expect(getAllModules(scope)).toEqual(modulesArray.map(m => m.config));
   });
 });
 
 describe('Module Hook Invocation with suppressErrors = true', () => {
   it('invokeNullKeyHooks should push error into errors array', async () => {
-    const moduleInstance = {
-      hooks: [
-        {
-          type: TEST_HOOK_TYPE,
-          key: null,
-          callback: errorCallback,
-          lock: false,
-          called: false
-        }
-      ]
-    } as ModuleInstance;
+    const target = {
+      resolved: {
+        hooks: [
+          {
+            type: TEST_HOOK_TYPE,
+            key: null,
+            callback: errorCallback,
+            lock: false,
+            called: false
+          }
+        ]
+      }
+    } as ModuleConfig;
 
     const errors: Error[] = [];
 
-    await invokeNullKeyHooks(moduleInstance, TEST_HOOK_TYPE, true, errors);
+    await invokeNullKeyHooks(target, TEST_HOOK_TYPE, true, errors);
 
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);
 
-    expect(moduleInstance.hooks?.[0].lock).toBe(false);
-    expect(moduleInstance.hooks?.[0].called).toBe(false);
+    expect(target.resolved?.hooks?.[0].lock).toBe(false);
+    expect(target.resolved?.hooks?.[0].called).toBe(false);
   });
 
   it('invokeAllKeyHooks should push error into errors array', async () => {
-    const moduleInstance = {
-      hooks: [
-        {
-          type: TEST_HOOK_TYPE,
-          key: ModuleHookKey.All,
-          callback: errorCallback,
-          lock: false,
-          called: false
-        }
-      ]
-    } as ModuleInstance;
+    const target = {
+      resolved: {
+        hooks: [
+          {
+            type: TEST_HOOK_TYPE,
+            key: ModuleHookKey.All,
+            callback: errorCallback,
+            lock: false,
+            called: false
+          }
+        ]
+      }
+    } as ModuleConfig;
 
     const scope = createTestScope(undefined, undefined, true);
 
     const errors: Error[] = [];
 
-    await invokeAllKeyHooks(
-      moduleInstance,
-      scope,
-      TEST_HOOK_TYPE,
-      true,
-      errors
-    );
+    await invokeAllKeyHooks(target, scope, TEST_HOOK_TYPE, true, errors);
 
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);
 
-    expect(moduleInstance.hooks?.[0].lock).toBe(false);
-    expect(moduleInstance.hooks?.[0].called).toBe(false);
+    expect(target.resolved?.hooks?.[0].lock).toBe(false);
+    expect(target.resolved?.hooks?.[0].called).toBe(false);
   });
 
   it('invokeAnyKeyHooks should push error into errors array', async () => {
     const target = {
-      hooks: [
-        {
-          type: TEST_HOOK_TYPE,
-          key: ModuleHookKey.Any,
-          callback: errorCallback,
-          lock: false,
-          called: false
-        }
-      ]
-    } as ModuleInstance;
+      resolved: {
+        hooks: [
+          {
+            type: TEST_HOOK_TYPE,
+            key: ModuleHookKey.Any,
+            callback: errorCallback,
+            lock: false,
+            called: false
+          }
+        ]
+      }
+    } as ModuleConfig;
 
     const source = {
-      name: 'sourceModule'
-    } as ModuleInstance;
+      resolved: {},
+      id: 1
+    } as ModuleConfig;
 
     const errors: Error[] = [];
 
@@ -513,24 +582,29 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);
 
-    expect(target.hooks?.[0].lock).toBe(false);
-    expect(target.hooks?.[0].called).toBe(false);
+    expect(target.resolved?.hooks?.[0].lock).toBe(false);
+    expect(target.resolved?.hooks?.[0].called).toBe(false);
   });
 
-  it('invokeSpecifiedKeyHooks should push error into errors array', async () => {
+  it('invokeSpecKeyHooks should push error into errors array', async () => {
     const target = {
-      hooks: [
-        {
-          type: TEST_HOOK_TYPE,
-          key: 'moduleA',
-          callback: errorCallback,
-          lock: false,
-          called: false
-        }
-      ]
-    } as ModuleInstance;
+      resolved: {
+        hooks: [
+          {
+            type: TEST_HOOK_TYPE,
+            key: 'moduleA',
+            callback: errorCallback,
+            lock: false,
+            called: false
+          }
+        ]
+      }
+    } as ModuleConfig;
 
-    const moduleA = { name: 'moduleA', isInstalled: true } as ModuleInstance;
+    const moduleA = {
+      config: { resolved: { meta: { name: 'moduleA' } } },
+      isInstalled: () => true
+    } as ModuleInstance;
 
     const scope: ModuleScope = {
       modules: {
@@ -542,7 +616,7 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
 
     const errors: Error[] = [];
 
-    await invokeSpecifiedKeyHooks(
+    await invokeSpecKeyHooks(
       target,
       scope,
       TEST_HOOK_TYPE,
@@ -554,27 +628,36 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);
 
-    expect(target.hooks?.[0].lock).toBe(false);
-    expect(target.hooks?.[0].called).toBe(false);
+    expect(target.resolved?.hooks?.[0].lock).toBe(false);
+    expect(target.resolved?.hooks?.[0].called).toBe(false);
   });
 
-  it('invokeSpecifiedKeyArrayHooks should push error into errors array', async () => {
+  it('invokeSpecKeyArrayHooks should push error into errors array', async () => {
     const target = {
-      hooks: [
-        {
-          type: TEST_HOOK_TYPE,
-          key: ['moduleA'],
-          callback: errorCallback,
-          lock: false,
-          called: false
-        }
-      ]
+      resolved: {
+        hooks: [
+          {
+            type: TEST_HOOK_TYPE,
+            key: ['moduleA'],
+            callback: errorCallback,
+            lock: false,
+            called: false
+          }
+        ]
+      }
+    } as ModuleConfig;
+
+    const moduleA = {
+      config: { resolved: { meta: { name: 'moduleA' } } },
+      isInstalled: () => true
     } as ModuleInstance;
 
-    const moduleA = { name: 'moduleA', isInstalled: true };
+    const map = new Map();
+    map.set('moduleA', moduleA);
+
     const scope: ModuleScope = {
       modules: {
-        get: (key: string) => (key === 'moduleA' ? moduleA : undefined),
+        toMap: () => map,
         isInstalled: () => true,
         toArray: () => [moduleA]
       } as ModuleManager
@@ -582,7 +665,7 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
 
     const errors: Error[] = [];
 
-    await invokeSpecifiedKeyArrayHooks(
+    await invokeSpecKeyArrayHooks(
       target,
       scope,
       TEST_HOOK_TYPE,
@@ -594,7 +677,7 @@ describe('Module Hook Invocation with suppressErrors = true', () => {
     expect(errors).toHaveLength(1);
     expect(errors[0].message).toBe(ERROR_MESSAGE);
 
-    expect(target.hooks?.[0].lock).toBe(false);
-    expect(target.hooks?.[0].called).toBe(false);
+    expect(target.resolved?.hooks?.[0].lock).toBe(false);
+    expect(target.resolved?.hooks?.[0].called).toBe(false);
   });
 });

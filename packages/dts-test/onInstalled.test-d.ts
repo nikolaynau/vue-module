@@ -1,11 +1,11 @@
 import { expectType, expectError } from 'tsd';
 import { defineModule } from '@vuemodule/core';
 import type {
-  ModuleInstance,
   ModuleKey,
   ModuleKeys,
   ModuleOptions,
-  ModuleValue
+  ModuleValue,
+  ResolvedModule
 } from '@vuemodule/core';
 import type { ModuleAReturn } from './moduleA';
 import './moduleB';
@@ -28,28 +28,28 @@ defineModule(({ onInstalled }) => {
   // No name, just a callback
   expectType<void>(onInstalled(() => {}));
 
-  onInstalled('moduleA', instance => {
-    expectType<ModuleInstance<ModuleOptions, ModuleAReturn>>(instance);
+  onInstalled('moduleA', resolved => {
+    expectType<ResolvedModule<ModuleOptions, ModuleAReturn>>(resolved);
   });
 
-  onInstalled('any', instance => {
-    expectType<ModuleInstance>(instance);
+  onInstalled('any', resolved => {
+    expectType<ResolvedModule>(resolved);
   });
 
-  onInstalled('all', instance => {
-    expectType<ModuleInstance[]>(instance);
+  onInstalled('all', resolved => {
+    expectType<ResolvedModule[]>(resolved);
   });
 
-  onInstalled(instance => {
-    expectType<ModuleInstance>(instance);
+  onInstalled(resolved => {
+    expectType<ResolvedModule>(resolved);
   });
 
   onInstalled(
     ['moduleA', 'customModule', 'moduleB'],
     ([moduleA, customModule, moduleB]) => {
-      expectType<ModuleInstance<ModuleOptions, ModuleAReturn>>(moduleA);
-      expectType<ModuleInstance>(customModule);
-      expectType<ModuleInstance<ModuleOptions, ModuleValue<'moduleB'>>>(
+      expectType<ResolvedModule<ModuleOptions, ModuleAReturn>>(moduleA);
+      expectType<ResolvedModule>(customModule);
+      expectType<ResolvedModule<ModuleOptions, ModuleValue<'moduleB'>>>(
         moduleB
       );
     }

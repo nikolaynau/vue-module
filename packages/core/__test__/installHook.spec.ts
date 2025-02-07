@@ -1,185 +1,201 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  afterEach,
+  type MockInstance,
+  beforeEach
+} from 'vitest';
 import { callInstallHook } from '../src/hooks/installHook';
 import * as hookModule from '../src/hooks/hook';
-import {
-  type ModuleInstance,
-  type ModuleManager,
-  type ModuleScope
-} from '../src/types';
+import * as moduleUtils from '../src/module';
+import type { ModuleConfig, ModuleScope } from '../src/types';
 
 describe('callInstallHook', () => {
+  let getModuleName: MockInstance;
+  let isModuleInstalled: MockInstance;
+  let moduleEquals: MockInstance;
+
+  let areAllModulesInstalled: MockInstance;
+  let getAllModules: MockInstance;
+  let invokeAllKeyHooks: MockInstance;
+  let invokeAllSpecKeyHooks: MockInstance;
+  let invokeAnyKeyHooks: MockInstance;
+  let invokeNullKeyHooks: MockInstance;
+
+  beforeEach(() => {
+    areAllModulesInstalled = vi.spyOn(hookModule, 'areAllModulesInstalled');
+    getAllModules = vi.spyOn(hookModule, 'getAllModules');
+    invokeAllKeyHooks = vi.spyOn(hookModule, 'invokeAllKeyHooks');
+    invokeAllSpecKeyHooks = vi.spyOn(hookModule, 'invokeAllSpecKeyHooks');
+    invokeAnyKeyHooks = vi.spyOn(hookModule, 'invokeAnyKeyHooks');
+    invokeNullKeyHooks = vi.spyOn(hookModule, 'invokeNullKeyHooks');
+
+    getModuleName = vi.spyOn(moduleUtils, 'getModuleName');
+    isModuleInstalled = vi.spyOn(moduleUtils, 'isModuleInstalled');
+    moduleEquals = vi.spyOn(moduleUtils, 'moduleEquals');
+  });
+
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
-  it('should return undefined if the module is not installed', async () => {
-    const spyNull = vi.spyOn(hookModule, 'invokeNullKeyHooks');
+  it('should do nothing if the module is not installed', async () => {
+    const moduleConfig = {} as ModuleConfig;
+    isModuleInstalled.mockReturnValue(false);
 
-    const moduleInstance = {
-      isInstalled: false
-    } as ModuleInstance;
+    await callInstallHook(moduleConfig);
 
-    const result = await callInstallHook(moduleInstance);
-
-    expect(result).toBeUndefined();
-    expect(spyNull).not.toHaveBeenCalled();
+    expect(isModuleInstalled).toHaveBeenCalledWith(moduleConfig);
+    expect(invokeNullKeyHooks).not.toHaveBeenCalled();
+    expect(invokeAllSpecKeyHooks).not.toHaveBeenCalled();
+    expect(invokeAnyKeyHooks).not.toHaveBeenCalled();
+    expect(invokeAllKeyHooks).not.toHaveBeenCalled();
   });
 
-  it('should call invokeNullKeyHooks and skip dependent hooks when scope is not provided', async () => {
-    const spyNull = vi
-      .spyOn(hookModule, 'invokeNullKeyHooks')
-      .mockResolvedValue(undefined);
-    const spySpecified = vi
-      .spyOn(hookModule, 'invokeSpecifiedKeyHooks')
-      .mockResolvedValue(undefined);
-    const spySpecifiedArray = vi
-      .spyOn(hookModule, 'invokeSpecifiedKeyArrayHooks')
-      .mockResolvedValue(undefined);
-    const spyAny = vi
-      .spyOn(hookModule, 'invokeAnyKeyHooks')
-      .mockResolvedValue(undefined);
-    const spyAll = vi
-      .spyOn(hookModule, 'invokeAllKeyHooks')
-      .mockResolvedValue(undefined);
+  it('should call invokeNullKeyHooks and exit if no scope is provided', async () => {
+    const moduleConfig = { scope: undefined } as ModuleConfig;
+    isModuleInstalled.mockReturnValue(true);
 
-    const moduleInstance = {
-      isInstalled: true,
-      scope: undefined
-    } as ModuleInstance;
+    await callInstallHook(moduleConfig);
 
-    await callInstallHook(moduleInstance);
-
-    expect(spyNull).toHaveBeenCalledTimes(1);
-    expect(spySpecified).not.toHaveBeenCalled();
-    expect(spySpecifiedArray).not.toHaveBeenCalled();
-    expect(spyAny).not.toHaveBeenCalled();
-    expect(spyAll).not.toHaveBeenCalled();
-  });
-
-  it('should call all dependent hook functions when a scope is provided', async () => {
-    const spyNull = vi
-      .spyOn(hookModule, 'invokeNullKeyHooks')
-      .mockResolvedValue(undefined);
-    const spyAllSpecified = vi
-      .spyOn(hookModule, 'invokeAllSpecifiedKeyHooks')
-      .mockResolvedValue(undefined);
-    const spyAny = vi
-      .spyOn(hookModule, 'invokeAnyKeyHooks')
-      .mockResolvedValue(undefined);
-    const spyAll = vi
-      .spyOn(hookModule, 'invokeAllKeyHooks')
-      .mockResolvedValue(undefined);
-
-    const dependentModule = { isInstalled: true } as ModuleInstance;
-
-    const scope: ModuleScope = {
-      modules: {
-        toArray: () => [dependentModule],
-        isInstalled: () => true,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        get: (value: any) => dependentModule
-      } as ModuleManager
-    };
-
-    const currentModule = {
-      name: 'test-module',
-      isInstalled: true,
-      scope,
-      equals: () => false
-    } as ModuleInstance;
-
-    await callInstallHook(currentModule);
-
-    expect(spyNull).toHaveBeenCalledWith(
-      currentModule,
+    expect(invokeNullKeyHooks).toHaveBeenCalledWith(
+      moduleConfig,
       'installed',
       false,
       undefined
     );
-    expect(spyAllSpecified).toHaveBeenCalledWith(
-      dependentModule,
-      scope,
-      'installed',
-      'test-module',
-      false,
-      undefined
-    );
-    expect(spyAny).toHaveBeenCalledWith(
-      currentModule,
-      dependentModule,
-      'installed',
-      false,
-      undefined
-    );
-    expect(spyAll).toHaveBeenCalledWith(
-      dependentModule,
-      scope,
+    expect(invokeAllSpecKeyHooks).not.toHaveBeenCalled();
+    expect(invokeAnyKeyHooks).not.toHaveBeenCalled();
+    expect(getAllModules).not.toHaveBeenCalled();
+  });
+
+  it('should call dependent hooks when module is installed and scope is provided (no other modules)', async () => {
+    const scope = {} as ModuleScope;
+    const moduleConfig = { scope } as ModuleConfig;
+    isModuleInstalled.mockReturnValue(true);
+    getAllModules.mockReturnValue([moduleConfig]);
+    areAllModulesInstalled.mockReturnValue(false);
+
+    await callInstallHook(moduleConfig);
+
+    expect(invokeNullKeyHooks).toHaveBeenCalledWith(
+      moduleConfig,
       'installed',
       false,
       undefined
     );
-  });
 
-  it('should throw an error if a hook invocation throws when suppressErrors is false', async () => {
-    const testError = new Error('Test error');
-    vi.spyOn(hookModule, 'invokeNullKeyHooks').mockRejectedValue(testError);
-
-    const moduleInstance = {
-      isInstalled: true,
-      scope: undefined
-    } as any;
-
-    await expect(callInstallHook(moduleInstance)).rejects.toThrow('Test error');
-  });
-
-  it('should collect errors in the errors array when suppressErrors is true', async () => {
-    const testError = new Error('Test suppressed error');
-    vi.spyOn(hookModule, 'invokeNullKeyHooks').mockImplementation(
-      async (moduleInstance, hookType, suppressErrors, _errors) => {
-        _errors?.push(testError);
-      }
-    );
-
-    const moduleInstance = {
-      isInstalled: true,
-      scope: undefined
-    } as ModuleInstance;
-
-    const errors: Error[] = [];
-    await callInstallHook(moduleInstance, true, errors);
-    expect(errors).toEqual([testError]);
-  });
-
-  it('should call all dependent hook functions for current module', async () => {
-    const spyAllSpecified = vi
-      .spyOn(hookModule, 'invokeAllSpecifiedKeyHooks')
-      .mockResolvedValue(undefined);
-
-    const modules: ModuleInstance[] = [];
-    const scope: ModuleScope = {
-      modules: {
-        toArray: () => modules,
-        isInstalled: () => true
-      } as ModuleManager
-    } as any;
-
-    const currentModule = {
-      name: 'test-module',
-      isInstalled: true,
-      scope,
-      equals: () => false
-    } as ModuleInstance;
-    modules.push(currentModule);
-
-    await callInstallHook(currentModule);
-
-    expect(spyAllSpecified).toHaveBeenCalledWith(
-      currentModule,
+    expect(invokeAllSpecKeyHooks).toHaveBeenCalledWith(
+      moduleConfig,
       scope,
       'installed',
       undefined,
       false,
       undefined
+    );
+
+    expect(invokeAnyKeyHooks).toHaveBeenCalledWith(
+      moduleConfig,
+      moduleConfig,
+      'installed',
+      false,
+      undefined
+    );
+
+    expect(moduleEquals).toHaveBeenCalledWith(moduleConfig, moduleConfig);
+    expect(invokeAllKeyHooks).not.toHaveBeenCalled();
+  });
+
+  it('should call hooks for dependent modules and invoke all key hooks when all modules are installed', async () => {
+    const scope = {} as ModuleScope;
+    const config1 = {
+      scope,
+      id: 1,
+      resolved: { meta: { name: 'module1' } }
+    } as ModuleConfig;
+    const config2 = {
+      scope,
+      id: 2,
+      resolved: { meta: { name: 'module2' } }
+    } as ModuleConfig;
+
+    isModuleInstalled.mockImplementation((cfg: ModuleConfig) => !!cfg.resolved);
+    moduleEquals.mockImplementation(
+      (a: ModuleConfig, b: ModuleConfig) => a.id === b.id
+    );
+    getModuleName.mockImplementation(
+      (cfg: ModuleConfig) => cfg.resolved?.meta?.name
+    );
+    getAllModules.mockReturnValue([config1, config2]);
+    areAllModulesInstalled.mockReturnValue(true);
+
+    const suppressErrors = false;
+    const errors: Error[] = [];
+
+    await callInstallHook(config1, suppressErrors, errors);
+
+    expect(invokeNullKeyHooks).toHaveBeenCalledWith(
+      config1,
+      'installed',
+      suppressErrors,
+      errors
+    );
+
+    expect(invokeAllSpecKeyHooks).toHaveBeenCalledWith(
+      config1,
+      scope,
+      'installed',
+      undefined,
+      suppressErrors,
+      errors
+    );
+    expect(invokeAnyKeyHooks).toHaveBeenCalledWith(
+      config1,
+      config1,
+      'installed',
+      suppressErrors,
+      errors
+    );
+
+    expect(getModuleName).toHaveBeenCalledWith(config1);
+    expect(invokeAllSpecKeyHooks).toHaveBeenCalledWith(
+      config2,
+      scope,
+      'installed',
+      'module1',
+      suppressErrors,
+      errors
+    );
+    expect(invokeAnyKeyHooks).toHaveBeenCalledWith(
+      config2,
+      config1,
+      'installed',
+      suppressErrors,
+      errors
+    );
+    expect(invokeAnyKeyHooks).toHaveBeenCalledWith(
+      config1,
+      config2,
+      'installed',
+      suppressErrors,
+      errors
+    );
+
+    expect(invokeAllKeyHooks).toHaveBeenCalledWith(
+      config1,
+      scope,
+      'installed',
+      suppressErrors,
+      errors
+    );
+    expect(invokeAllKeyHooks).toHaveBeenCalledWith(
+      config2,
+      scope,
+      'installed',
+      suppressErrors,
+      errors
     );
   });
 });

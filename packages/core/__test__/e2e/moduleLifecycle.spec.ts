@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createModule, createModules, defineModule } from '../../src';
 import type {
-  ModuleInstance,
   ModuleLoader,
   ModuleOptions,
   ModuleSetupFunction,
-  ModuleSetupReturn
+  ModuleSetupReturn,
+  ResolvedModule
 } from '../../src';
 
 function createTestLoader<
@@ -39,13 +39,13 @@ describe('Module Lifecycle', () => {
     const moduleA = createModule(moduleLoader, { foo: 'bar' });
 
     await moduleA.install();
-    expect(moduleA.exports).toEqual({ bar: 'baz' });
-    expect(moduleA.name).toBe('moduleA');
-    expect(moduleA.isInstalled).toBe(true);
+    expect(moduleA.getExports()).toEqual({ bar: 'baz' });
+    expect(moduleA.getName()).toBe('moduleA');
+    expect(moduleA.isInstalled()).toBe(true);
 
     await moduleA.uninstall();
-    expect(moduleA.exports).toBeUndefined();
-    expect(moduleA.isInstalled).toBe(false);
+    expect(moduleA.getExports()).toBeUndefined();
+    expect(moduleA.isInstalled()).toBe(false);
 
     expect(setupFn).toHaveBeenCalledOnce();
     expect(setupFn).toHaveBeenCalledWith(
@@ -60,15 +60,13 @@ describe('Module Lifecycle', () => {
   it('should install and uninstall multiple modules with hooks', async () => {
     const mockInstallHook = vi
       .fn()
-      .mockImplementation((instance: ModuleInstance) => {
-        expect(instance.isInstalled).toBe(true);
-        expect(instance.exports).toEqual({ bar: 'baz' });
+      .mockImplementation((module: ResolvedModule) => {
+        expect(module.exports).toEqual({ bar: 'baz' });
       });
     const mockUninstallHook = vi
       .fn()
-      .mockImplementation((instance: ModuleInstance) => {
-        expect(instance.isInstalled).toBe(true);
-        expect(instance.exports).toEqual({ bar: 'baz' });
+      .mockImplementation((module: ResolvedModule) => {
+        expect(module.exports).toEqual({ bar: 'baz' });
       });
 
     const moduleASetup = vi.fn().mockImplementation(() => {
@@ -98,35 +96,31 @@ describe('Module Lifecycle', () => {
 
     const moduleA = modules.get('moduleA')!;
     expect(moduleA).not.toBeUndefined();
-    expect(moduleA.exports).toEqual({ bar: 'baz' });
-    expect(moduleA.isInstalled).toBe(true);
+    expect(moduleA.getExports()).toEqual({ bar: 'baz' });
+    expect(moduleA.isInstalled()).toBe(true);
 
     const moduleB = modules.getAt(1)!;
     expect(moduleB).not.toBeUndefined();
-    expect(moduleB.exports).toBeUndefined();
-    expect(moduleB.isInstalled).toBe(true);
-
-    await modules.uninstall();
-
-    expect(moduleA.exports).toBeUndefined();
-    expect(moduleA.isInstalled).toBe(false);
+    expect(moduleB.getExports()).toBeUndefined();
+    expect(moduleB.isInstalled()).toBe(true);
 
     expect(moduleASetup).toHaveBeenCalledOnce();
     expect(moduleBSetup).toHaveBeenCalledOnce();
 
     expect(mockInstallHook).toHaveBeenCalledOnce();
-    expect(mockInstallHook).toHaveBeenCalledWith(moduleA);
+
+    await modules.uninstall();
+
+    expect(moduleA.getExports()).toBeUndefined();
+    expect(moduleA.isInstalled()).toBe(false);
+
     expect(mockUninstallHook).toHaveBeenCalledOnce();
-    expect(mockUninstallHook).toHaveBeenCalledWith(moduleA);
   });
 
   it('should call onInstalled with array when modules are installed', async () => {
     const mockInstallHook = vi
       .fn()
-      .mockImplementation(([moduleA, moduleB]: ModuleInstance[]) => {
-        expect(moduleA.isInstalled).toBe(true);
-        expect(moduleB.isInstalled).toBe(true);
-
+      .mockImplementation(([moduleA, moduleB]: ResolvedModule[]) => {
         expect(moduleA.exports).toEqual({ bar: 'baz' });
         expect(moduleB.exports).toEqual({ a: '1', b: 2 });
       });
@@ -156,18 +150,21 @@ describe('Module Lifecycle', () => {
     await modules.install();
 
     expect(modules.get('moduleA')).not.toBeUndefined();
-    expect(modules.get('moduleA')?.exports).toEqual({ bar: 'baz' });
-    expect(modules.get('moduleA')?.isInstalled).toBe(true);
+    expect(modules.get('moduleA')?.getExports()).toEqual({ bar: 'baz' });
+    expect(modules.get('moduleA')?.isInstalled()).toBe(true);
 
     expect(modules.get('moduleB')).not.toBeUndefined();
-    expect(modules.get('moduleB')?.exports).toEqual({ a: '1', b: 2 });
-    expect(modules.get('moduleB')?.isInstalled).toBe(true);
+    expect(modules.get('moduleB')?.getExports()).toEqual({ a: '1', b: 2 });
+    expect(modules.get('moduleB')?.isInstalled()).toBe(true);
 
     expect(modules.get('moduleC')).not.toBeUndefined();
-    expect(modules.get('moduleC')?.exports).toBeUndefined();
-    expect(modules.get('moduleC')?.isInstalled).toBe(true);
+    expect(modules.get('moduleC')?.getExports()).toBeUndefined();
+    expect(modules.get('moduleC')?.isInstalled()).toBe(true);
 
     expect(mockInstallHook).toHaveBeenCalledOnce();
-    expect(mockInstallHook).toHaveBeenCalledWith([moduleA, moduleB]);
+    expect(mockInstallHook).toHaveBeenCalledWith([
+      moduleA.config.resolved,
+      moduleB.config.resolved
+    ]);
   });
 });

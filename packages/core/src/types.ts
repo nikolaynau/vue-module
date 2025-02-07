@@ -166,6 +166,15 @@ export interface ModuleInstance<
   R extends ModuleSetupReturn = ModuleSetupReturn
 > {
   readonly config: ModuleConfig<T, R>;
+
+  getId(): number | undefined;
+
+  getName(): string | undefined;
+
+  getExports(): R | undefined;
+
+  getOptions(): T | undefined;
+
   equals(other?: ModuleInstance<any, any>): boolean;
 
   install(): Promise<void>;
@@ -182,11 +191,10 @@ export interface ModuleInstance<
 }
 
 export interface ModuleManager {
-  readonly size: number;
-  readonly isEmpty: boolean;
-
-  setScope(scope: ModuleScope): void;
   getScope(): ModuleScope | undefined;
+
+  getSize(): number;
+  isEmpty(): boolean;
 
   toArray(): ModuleInstance[];
   toMap(): Map<string, ModuleInstance>;
@@ -201,6 +209,10 @@ export interface ModuleManager {
   get<T extends ModuleOptions, R extends ModuleSetupReturn>(
     module: ModuleInstance<T, R>
   ): ModuleInstance<T, R> | undefined;
+  get<K extends ModuleKey>(
+    name: K[]
+  ): ModuleInstance<ModuleOptions, ModuleValue<K>>[];
+  get(name: string[]): ModuleInstance[];
 
   getAt(index: number): ModuleInstance | undefined;
 

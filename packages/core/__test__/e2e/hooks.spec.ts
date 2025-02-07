@@ -9,7 +9,8 @@ import type {
   ModuleInstance,
   ModuleOptions,
   ModuleSetupFunction,
-  ModuleSetupReturn
+  ModuleSetupReturn,
+  ResolvedModule
 } from '../../src';
 
 type TestModuleName = 'moduleA' | 'moduleB' | 'moduleC';
@@ -88,10 +89,7 @@ describe('Install Hooks', () => {
   it('should call onInstalled with array when modules are installed', async () => {
     const mockInstallHook = vi
       .fn()
-      .mockImplementation(([moduleA, moduleB]: ModuleInstance[]) => {
-        expect(moduleA.isInstalled).toBe(true);
-        expect(moduleB.isInstalled).toBe(true);
-
+      .mockImplementation(([moduleA, moduleB]: ResolvedModule[]) => {
         expect(moduleA.exports).toEqual({ bar: 'baz' });
         expect(moduleB.exports).toEqual({ a: '1', b: 2 });
       });
@@ -117,19 +115,22 @@ describe('Install Hooks', () => {
     await modules.install();
 
     expect(modules.get('moduleA')).not.toBeUndefined();
-    expect(modules.get('moduleA')?.exports).toEqual({ bar: 'baz' });
-    expect(modules.get('moduleA')?.isInstalled).toBe(true);
+    expect(modules.get('moduleA')?.getExports()).toEqual({ bar: 'baz' });
+    expect(modules.get('moduleA')?.isInstalled()).toBe(true);
 
     expect(modules.get('moduleB')).not.toBeUndefined();
-    expect(modules.get('moduleB')?.exports).toEqual({ a: '1', b: 2 });
-    expect(modules.get('moduleB')?.isInstalled).toBe(true);
+    expect(modules.get('moduleB')?.getExports()).toEqual({ a: '1', b: 2 });
+    expect(modules.get('moduleB')?.isInstalled()).toBe(true);
 
     expect(modules.get('moduleC')).not.toBeUndefined();
-    expect(modules.get('moduleC')?.exports).toBeUndefined();
-    expect(modules.get('moduleC')?.isInstalled).toBe(true);
+    expect(modules.get('moduleC')?.getExports()).toBeUndefined();
+    expect(modules.get('moduleC')?.isInstalled()).toBe(true);
 
     expect(mockInstallHook).toHaveBeenCalledOnce();
-    expect(mockInstallHook).toHaveBeenCalledWith([moduleA, moduleB]);
+    expect(mockInstallHook).toHaveBeenCalledWith([
+      moduleA.config.resolved,
+      moduleB.config.resolved
+    ]);
   });
 
   it.each([
@@ -189,73 +190,83 @@ function verifyInstallModuleHooks(
   dep1: ReturnType<typeof createInstallHookTestCase>,
   dep2: ReturnType<typeof createInstallHookTestCase>
 ) {
-  const testName = testModule.testModule.name;
-  const dep1Name = dep1.testModule.name;
-  const dep2Name = dep2.testModule.name;
+  const testName = testModule.testModule.getName();
+  const dep1Name = dep1.testModule.getName();
+  const dep2Name = dep2.testModule.getName();
 
   expect(testModule.nullKeyHook).toHaveBeenCalledOnce();
   expect(testModule.nullKeyHook).toHaveBeenCalledWith(
     expect.objectContaining({
-      name: testName
+      meta: expect.objectContaining({
+        name: testName
+      })
     })
   );
 
   expect(testModule.specCurrKeyHook).toHaveBeenCalledOnce();
   expect(testModule.specCurrKeyHook).toHaveBeenCalledWith(
     expect.objectContaining({
-      name: testName
+      meta: expect.objectContaining({
+        name: testName
+      })
     })
   );
 
   expect(testModule.specDep1KeyHook).toHaveBeenCalledOnce();
   expect(testModule.specDep1KeyHook).toHaveBeenCalledWith(
     expect.objectContaining({
-      name: dep1Name
+      meta: expect.objectContaining({
+        name: dep1Name
+      })
     })
   );
 
   expect(testModule.specDep2KeyHook).toHaveBeenCalledOnce();
   expect(testModule.specDep2KeyHook).toHaveBeenCalledWith(
     expect.objectContaining({
-      name: dep2Name
+      meta: expect.objectContaining({
+        name: dep2Name
+      })
     })
   );
 
   expect(testModule.specArrDep1Dep2KeyHook).toHaveBeenCalledOnce();
   expect(
     testModule.specArrDep1Dep2KeyHook.mock.calls[0][0].map(
-      (m: ModuleInstance) => m.name
+      (m: ResolvedModule) => m.meta?.name
     )
   ).toEqual([dep1Name, dep2Name]);
 
   expect(testModule.specArrCurrDep1Dep2KeyHook).toHaveBeenCalledOnce();
   expect(
     testModule.specArrCurrDep1Dep2KeyHook.mock.calls[0][0].map(
-      (m: ModuleInstance) => m.name
+      (m: ResolvedModule) => m.meta?.name
     )
   ).toEqual([testName, dep1Name, dep2Name]);
 
   expect(testModule.specArrCurrDep1KeyHook).toHaveBeenCalledOnce();
   expect(
     testModule.specArrCurrDep1KeyHook.mock.calls[0][0].map(
-      (m: ModuleInstance) => m.name
+      (m: ResolvedModule) => m.meta?.name
     )
   ).toEqual([testName, dep1Name]);
 
   expect(testModule.specArrCurrDep2KeyHook).toHaveBeenCalledOnce();
   expect(
     testModule.specArrCurrDep2KeyHook.mock.calls[0][0].map(
-      (m: ModuleInstance) => m.name
+      (m: ResolvedModule) => m.meta?.name
     )
   ).toEqual([testName, dep2Name]);
 
   expect(testModule.anyKeyHook).toHaveBeenCalledTimes(3);
-  expect(testModule.anyKeyHook.mock.calls.map(c => c[0].name)).toEqual(
+  expect(testModule.anyKeyHook.mock.calls.map(c => c[0].meta?.name)).toEqual(
     expect.arrayContaining([testName, dep1Name, dep2Name])
   );
 
   expect(testModule.allKeyHook).toHaveBeenCalledOnce();
   expect(
-    testModule.allKeyHook.mock.calls[0][0].map((m: ModuleInstance) => m.name)
+    testModule.allKeyHook.mock.calls[0][0].map(
+      (m: ResolvedModule) => m.meta?.name
+    )
   ).toEqual(expect.arrayContaining([testName, dep1Name, dep2Name]));
 }

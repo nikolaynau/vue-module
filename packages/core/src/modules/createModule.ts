@@ -9,7 +9,14 @@ import type {
 } from '../types';
 import { callInstallHook, callUninstallHook } from '../hooks';
 import { loadModule } from '../loader';
-import { disposeModule, isModuleInstalled, moduleEquals } from '../module';
+import {
+  disposeModule,
+  getModuleExports,
+  getModuleName,
+  getModuleOptions,
+  isModuleInstalled,
+  moduleEquals
+} from '../module';
 import { createConfig } from './createConfig';
 
 export function createModule<
@@ -52,13 +59,13 @@ export function createModule<
   async function install(): Promise<void> {
     if (!isInstalled()) {
       await loadModule(config);
-      callHooks('installed');
+      await callHooks('installed');
     }
   }
 
   async function uninstall(): Promise<void> {
     if (isInstalled()) {
-      callHooks('uninstall');
+      await callHooks('uninstall');
       disposeModule(config);
     }
   }
@@ -69,6 +76,22 @@ export function createModule<
     } else if (type === 'uninstall') {
       await callUninstallHook(config, ignoreHookErrors, hookErrors);
     }
+  }
+
+  function getId(): number | undefined {
+    return config.id;
+  }
+
+  function getName(): string | undefined {
+    return getModuleName(config);
+  }
+
+  function getExports(): R | undefined {
+    return getModuleExports(config);
+  }
+
+  function getOptions(): T | undefined {
+    return getModuleOptions(config);
   }
 
   function equals(other?: ModuleInstance<any, any>): boolean {
@@ -89,6 +112,10 @@ export function createModule<
     install,
     uninstall,
     equals,
+    getId,
+    getName,
+    getExports,
+    getOptions,
     callHooks,
     setIgnoreHookErrors,
     getHookErrors
