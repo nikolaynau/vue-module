@@ -1,6 +1,8 @@
 import { getModuleName, moduleEquals } from '../module';
 import { handlePromises } from '../promise';
 import type {
+  Arrayable,
+  InternalModuleManager,
   ModuleConfig,
   ModuleEnforce,
   ModuleExecutionOptions,
@@ -15,6 +17,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
 ): ModuleManager {
   let scope: ModuleScope | undefined = undefined;
   const moduleArray: ModuleInstance[] = [];
+  const moduleMap: Map<string, ModuleInstance> = new Map();
 
   function getScope(): ModuleScope {
     return scope!;
@@ -33,14 +36,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
   }
 
   function toMap(): Map<string, ModuleInstance> {
-    const map = new Map();
-    for (const module of moduleArray) {
-      const name = getModuleName(module.config);
-      if (name) {
-        map.set(name, module);
-      }
-    }
-    return map;
+    return new Map(moduleMap);
   }
 
   function getAt(index: number): ModuleInstance | undefined {
@@ -53,11 +49,11 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
     value: unknown
   ): ModuleInstance<any, any> | ModuleInstance<any, any>[] | undefined {
     if (typeof value === 'string') {
-      return moduleArray.find(createPredicateByName(value));
+      return fromMap(value);
     }
 
     if (Array.isArray(value)) {
-      return moduleArray.filter(createPredicateByNames(value));
+      return fromMap(value);
     }
 
     if (isModule(value)) {
@@ -65,23 +61,29 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
     }
 
     if (isConfig(value)) {
-      return moduleArray.find(createPredicateByConfig(value));
+      return getModuleName(value)
+        ? fromMap(getModuleName(value))
+        : moduleArray.find(createPredicateByConfig(value));
     }
 
     return undefined;
   }
 
-  function has(arg: unknown): boolean {
-    if (typeof arg === 'string') {
-      return moduleArray.some(createPredicateByName(arg));
+  function has(value: unknown): boolean {
+    if (typeof value === 'string') {
+      return moduleMap.has(value);
     }
 
-    if (isModule(arg)) {
-      return moduleArray.some(createPredicateByModule(arg));
+    if (isModule(value)) {
+      return getModuleName(value.config)
+        ? moduleMap.has(getModuleName(value.config)!)
+        : moduleArray.some(createPredicateByModule(value));
     }
 
-    if (isConfig(arg)) {
-      return moduleArray.some(createPredicateByConfig(arg));
+    if (isConfig(value)) {
+      return getModuleName(value)
+        ? moduleMap.has(getModuleName(value)!)
+        : moduleArray.some(createPredicateByConfig(value));
     }
 
     return false;
@@ -91,6 +93,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
     if (!has(module)) {
       module.config.scope = scope;
       moduleArray.push(module);
+      addToMap(module);
     }
     return module;
   }
@@ -101,6 +104,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
       const index = moduleArray.findIndex(createPredicateByModule(module));
       if (index !== -1) {
         moduleArray.splice(index, 1);
+        removeFromMap(module);
       }
     }
     return module;
@@ -108,6 +112,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
 
   function removeAll(): void {
     moduleArray.length = 0;
+    moduleMap.clear();
   }
 
   function isInstalled(value?: unknown): boolean {
@@ -120,7 +125,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
     if (args.length === 1 && args[0] && typeof args[0] !== 'function') {
       await add(args[0]).install();
     } else {
-      await executeModulesInOrder(module => module.install(), args[0], args[1]);
+      await executeInOrder(module => module.install(), args[0], args[1]);
     }
   }
 
@@ -135,7 +140,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
         ...args[1],
         parallel: false
       } satisfies ModuleExecutionOptions;
-      await executeModulesInOrder(
+      await executeInOrder(
         module => module.uninstall(),
         args[0],
         executionOptions
@@ -149,11 +154,57 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
       for (const module of modules) {
         module.config.scope = scope;
         moduleArray.push(module);
+        addToMap(module);
       }
     }
   }
 
-  async function executeModulesInOrder(
+  function fromMap(value?: string): ModuleInstance<any, any> | undefined;
+  function fromMap(value?: string[]): ModuleInstance<any, any>[];
+  function fromMap(
+    value?: string | string[]
+  ): Arrayable<ModuleInstance<any, any>> | undefined {
+    if (!Array.isArray(value)) {
+      return typeof value === 'string' && value
+        ? moduleMap.get(value)
+        : undefined;
+    }
+
+    const result: ModuleInstance<any, any>[] = [];
+    for (const val of value) {
+      if (typeof val === 'string' && val) {
+        const module = moduleMap.get(val);
+        if (module) {
+          result.push(module);
+        }
+      }
+    }
+    return result;
+  }
+
+  function addToMap(module: ModuleInstance): void {
+    const name = getModuleName(module.config);
+    if (name) {
+      moduleMap.set(name, module);
+    }
+  }
+
+  function removeFromMap(module: ModuleInstance): void {
+    const name = getModuleName(module.config);
+    if (name) {
+      moduleMap.delete(name);
+    }
+  }
+
+  function _postInstall(module: ModuleInstance<any, any>): void {
+    addToMap(module);
+  }
+
+  function _preDispose(module: ModuleInstance<any, any>): void {
+    removeFromMap(module);
+  }
+
+  async function executeInOrder(
     fn: (module: ModuleInstance) => Promise<void>,
     filter?: (module: ModuleInstance) => boolean,
     options?: ModuleExecutionOptions
@@ -217,25 +268,11 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
     return (module: ModuleInstance) => module.equals(value);
   }
 
-  function createPredicateByName(
-    value: string
-  ): (module: ModuleInstance) => boolean {
-    return (module: ModuleInstance) => getModuleName(module.config) === value;
-  }
-
-  function createPredicateByNames(
-    value: string[]
-  ): (module: ModuleInstance) => boolean {
-    const valueSet = new Set(value);
-    return (module: ModuleInstance) =>
-      valueSet.has(getModuleName(module.config)!);
-  }
-
   function createPredicateByInstalled(): (module: ModuleInstance) => boolean {
     return (module: ModuleInstance) => module.isInstalled();
   }
 
-  const manager: ModuleManager = {
+  const manager: InternalModuleManager = {
     getScope,
     getSize,
     isEmpty,
@@ -249,7 +286,9 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
     removeAll,
     isInstalled,
     install,
-    uninstall
+    uninstall,
+    _postInstall,
+    _preDispose
   };
 
   initialize(createScope(manager));

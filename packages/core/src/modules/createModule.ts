@@ -1,4 +1,5 @@
 import type {
+  InternalModuleManager,
   ModuleDep,
   ModuleHookType,
   ModuleInstance,
@@ -52,6 +53,21 @@ export function createModule<
   let ignoreHookErrors = false;
   const hookErrors: Error[] = [];
 
+  const instance: ModuleInstance<T, R> = {
+    config,
+    isInstalled,
+    install,
+    uninstall,
+    equals,
+    getId,
+    getName,
+    getExports,
+    getOptions,
+    callHooks,
+    setIgnoreHookErrors,
+    getHookErrors
+  };
+
   function isInstalled(): boolean {
     return isModuleInstalled(config);
   }
@@ -59,6 +75,7 @@ export function createModule<
   async function install(): Promise<void> {
     if (!isInstalled()) {
       await loadModule(config);
+      _postInstall();
       await callHooks('installed');
     }
   }
@@ -66,6 +83,7 @@ export function createModule<
   async function uninstall(): Promise<void> {
     if (isInstalled()) {
       await callHooks('uninstall');
+      _preDispose();
       disposeModule(config);
     }
   }
@@ -106,18 +124,19 @@ export function createModule<
     return hookErrors;
   }
 
-  return {
-    config,
-    isInstalled,
-    install,
-    uninstall,
-    equals,
-    getId,
-    getName,
-    getExports,
-    getOptions,
-    callHooks,
-    setIgnoreHookErrors,
-    getHookErrors
-  };
+  function _postInstall() {
+    const internal = config.scope?.modules as InternalModuleManager;
+    if (typeof internal?._postInstall === 'function') {
+      internal._postInstall(instance);
+    }
+  }
+
+  function _preDispose() {
+    const internal = config.scope?.modules as InternalModuleManager;
+    if (typeof internal?._preDispose === 'function') {
+      internal._preDispose(instance);
+    }
+  }
+
+  return instance;
 }

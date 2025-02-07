@@ -239,7 +239,7 @@ export interface ModuleManager {
   has(module: ModuleInstance<any, any>): boolean;
 
   isInstalled(): boolean;
-  isInstalled(config: ModuleConfig): boolean;
+  isInstalled(config: ModuleConfig<any, any>): boolean;
   isInstalled(name: ModuleKey): boolean;
   isInstalled(name: string): boolean;
 
@@ -247,16 +247,21 @@ export interface ModuleManager {
     filter?: (module: ModuleInstance) => boolean,
     options?: ModuleExecutionOptions
   ): Promise<void>;
-  install(module: ModuleInstance): Promise<void>;
+  install(module: ModuleInstance<any, any>): Promise<void>;
 
   uninstall(
     filter?: (module: ModuleInstance) => boolean,
     options?: ModuleErrorHandlingOptions
   ): Promise<void>;
-  uninstall(config: ModuleConfig): Promise<void>;
+  uninstall(config: ModuleConfig<any, any>): Promise<void>;
   uninstall(name: ModuleKey): Promise<void>;
   uninstall(name: string): Promise<void>;
-  uninstall(module: ModuleInstance): Promise<void>;
+  uninstall(module: ModuleInstance<any, any>): Promise<void>;
+}
+
+export interface InternalModuleManager extends ModuleManager {
+  _postInstall(module: ModuleInstance<any, any>): void;
+  _preDispose(module: ModuleInstance<any, any>): void;
 }
 
 export interface ModuleScope {
