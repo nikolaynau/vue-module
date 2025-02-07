@@ -83,7 +83,7 @@ function createInstallHookTestCase(
 
 describe('Install Hooks', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should call onInstalled with array when modules are installed', async () => {

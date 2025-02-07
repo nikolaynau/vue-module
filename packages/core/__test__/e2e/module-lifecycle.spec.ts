@@ -23,7 +23,7 @@ function createTestLoader<
 
 describe('Module Lifecycle', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should install and uninstall a single module', async () => {
