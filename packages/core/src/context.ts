@@ -4,13 +4,18 @@ import type {
   ModuleHookCallback,
   ModuleHookConfig,
   ModuleHookType,
+  ModuleInstance,
   ModuleMeta,
-  ModuleOptions
+  ModuleOptions,
+  ModuleScope
 } from './types';
+import { isModuleInstance } from './module';
+import { createModule } from './modules';
 
 export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
   meta?: ModuleMeta,
-  options?: T
+  options?: T,
+  scope?: ModuleScope
 ): ModuleContext<T> {
   const _meta: ModuleMeta = { ...meta };
   const _options = options ?? ({} as T);
@@ -26,6 +31,26 @@ export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
 
   function setMeta(meta: ModuleMeta) {
     Object.assign(_meta, meta);
+  }
+
+  function getModule(name: string): ModuleInstance | undefined {
+    return scope?.modules?.get(name);
+  }
+
+  function getScope(): ModuleScope | undefined {
+    return scope;
+  }
+
+  async function installModule(...args: unknown[]): Promise<ModuleInstance> {
+    const module = isModuleInstance(args[0])
+      ? args[0]
+      : ((createModule as any)(...args) as ModuleInstance);
+    if (scope) {
+      await scope.modules.install(module);
+    } else {
+      await module.install();
+    }
+    return module;
   }
 
   function onInstalled(nameOrFn: unknown, fn?: unknown): void {
@@ -66,6 +91,9 @@ export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
     setName,
     setVersion,
     setMeta,
+    getModule,
+    getScope,
+    installModule,
     onInstalled,
     onUninstall
   };

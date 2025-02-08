@@ -1,5 +1,3 @@
-import { getModuleName, moduleEquals } from '../module';
-import { handlePromises } from '../promise';
 import type {
   Arrayable,
   InternalModuleManager,
@@ -10,6 +8,13 @@ import type {
   ModuleManager,
   ModuleScope
 } from '../types';
+import {
+  getModuleName,
+  isModuleConfig,
+  isModuleInstance,
+  moduleEquals
+} from '../module';
+import { handlePromises } from '../promise';
 import { createScope } from './createScope';
 
 export function createModules<T extends ModuleInstance<any, any>[]>(
@@ -56,11 +61,11 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
       return fromMap(value);
     }
 
-    if (isModule(value)) {
+    if (isModuleInstance(value)) {
       return has(value) ? value : undefined;
     }
 
-    if (isConfig(value)) {
+    if (isModuleConfig(value)) {
       return getModuleName(value)
         ? fromMap(getModuleName(value))
         : moduleArray.find(createPredicateByConfig(value));
@@ -74,13 +79,13 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
       return moduleMap.has(value);
     }
 
-    if (isModule(value)) {
+    if (isModuleInstance(value)) {
       return getModuleName(value.config)
         ? moduleMap.has(getModuleName(value.config)!)
         : moduleArray.some(createPredicateByModule(value));
     }
 
-    if (isConfig(value)) {
+    if (isModuleConfig(value)) {
       return getModuleName(value)
         ? moduleMap.has(getModuleName(value)!)
         : moduleArray.some(createPredicateByConfig(value));
@@ -91,7 +96,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
 
   function add(module: ModuleInstance<any, any>): ModuleInstance<any, any> {
     if (!has(module)) {
-      module.config.scope = scope;
+      module.setScope(scope);
       moduleArray.push(module);
       addToMap(module);
     }
@@ -152,7 +157,7 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
     scope = moduleScope;
     if (Array.isArray(modules)) {
       for (const module of modules) {
-        module.config.scope = scope;
+        module.setScope(scope);
         moduleArray.push(module);
         addToMap(module);
       }
@@ -246,14 +251,6 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
         );
       }
     }
-  }
-
-  function isModule(value: any): value is ModuleInstance {
-    return typeof value === 'object' && value !== null && 'config' in value;
-  }
-
-  function isConfig(value: any): value is ModuleConfig {
-    return typeof value === 'object' && value !== null && 'loader' in value;
   }
 
   function createPredicateByConfig(

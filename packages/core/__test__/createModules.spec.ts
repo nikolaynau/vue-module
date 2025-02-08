@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { ModuleInstance, ModuleEnforce, ModuleConfig } from '../src/types';
+import type {
+  ModuleInstance,
+  ModuleEnforce,
+  ModuleConfig,
+  ModuleScope
+} from '../src/types';
 import { createModules } from '../src/modules/createModules';
 
 function createDummyModule(
@@ -7,12 +12,13 @@ function createDummyModule(
   enforce?: ModuleEnforce
 ): ModuleInstance {
   let installed = false;
+  const config = {
+    resolved: { meta: { name } },
+    loader: () => {},
+    enforce
+  } as ModuleConfig;
   return {
-    config: {
-      resolved: { meta: { name } },
-      loader: () => {},
-      enforce
-    } as ModuleConfig,
+    config,
     async install() {
       installed = true;
     },
@@ -24,6 +30,9 @@ function createDummyModule(
     },
     equals(other: ModuleInstance) {
       return other.config?.resolved?.meta?.name === name;
+    },
+    setScope: (scope: ModuleScope) => {
+      config.scope = scope;
     }
   } as ModuleInstance;
 }

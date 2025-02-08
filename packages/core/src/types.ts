@@ -103,8 +103,8 @@ export interface ResolvedModule<
 }
 
 export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
-  meta: ModuleMeta;
-  options: T;
+  readonly meta: Readonly<ModuleMeta>;
+  readonly options: Readonly<T>;
 
   setName(name: string | undefined): void;
 
@@ -115,6 +115,15 @@ export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
   onInstalled: InstallHook<T>;
 
   onUninstall: UninstallHook<T>;
+
+  getModule<K extends ModuleKey, TOpt extends ModuleOptions = ModuleOptions>(
+    name: K
+  ): ModuleInstance<TOpt, ModuleValue<K>> | undefined;
+  getModule(name: string): ModuleInstance | undefined;
+
+  installModule: ModuleInstallFunction;
+
+  getScope(): ModuleScope | undefined;
 }
 
 export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
@@ -161,6 +170,45 @@ export interface UninstallHook<T extends ModuleOptions = ModuleOptions> {
   (fn: ModuleHookCallback<ResolvedModule<T>>): void;
 }
 
+export interface ModuleInstallFunction {
+  <
+    T extends ModuleOptions = ModuleOptions,
+    R extends ModuleSetupReturn = ModuleSetupReturn
+  >(
+    config: ModuleLoadConfig<T, R>
+  ): Promise<ModuleInstance<T, R>>;
+
+  <
+    T extends ModuleOptions = ModuleOptions,
+    R extends ModuleSetupReturn = ModuleSetupReturn
+  >(
+    loader: ModuleLoader<T, R>
+  ): Promise<ModuleInstance<T, R>>;
+
+  <
+    T extends ModuleOptions = ModuleOptions,
+    R extends ModuleSetupReturn = ModuleSetupReturn
+  >(
+    loader: ModuleLoader<T, R>,
+    options: T
+  ): Promise<ModuleInstance<T, R>>;
+
+  <
+    T extends ModuleOptions = ModuleOptions,
+    R extends ModuleSetupReturn = ModuleSetupReturn
+  >(
+    loader: ModuleLoader<T, R>,
+    ...deps: ModuleDep[]
+  ): Promise<ModuleInstance<T, R>>;
+
+  <
+    T extends ModuleOptions = ModuleOptions,
+    R extends ModuleSetupReturn = ModuleSetupReturn
+  >(
+    module: ModuleInstance<T, R>
+  ): Promise<ModuleInstance<T, R>>;
+}
+
 export interface ModuleInstance<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
@@ -176,6 +224,10 @@ export interface ModuleInstance<
   getOptions(): T | undefined;
 
   equals(other?: ModuleInstance<any, any>): boolean;
+
+  setScope(scope: ModuleScope | undefined): void;
+
+  getScope(): ModuleScope | undefined;
 
   install(): Promise<void>;
 

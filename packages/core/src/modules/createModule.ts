@@ -6,6 +6,7 @@ import type {
   ModuleLoadConfig,
   ModuleLoader,
   ModuleOptions,
+  ModuleScope,
   ModuleSetupReturn
 } from '../types';
 import { callInstallHook, callUninstallHook } from '../hooks';
@@ -63,6 +64,8 @@ export function createModule<
     getName,
     getExports,
     getOptions,
+    setScope,
+    getScope,
     callHooks,
     setIgnoreHookErrors,
     getHookErrors
@@ -110,6 +113,14 @@ export function createModule<
 
   function getOptions(): T | undefined {
     return getModuleOptions(config);
+  }
+
+  function setScope(scope: ModuleScope | undefined): void {
+    config.scope = scope;
+  }
+
+  function getScope(): ModuleScope | undefined {
+    return config.scope;
   }
 
   function equals(other?: ModuleInstance<any, any>): boolean {

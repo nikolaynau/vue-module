@@ -1,5 +1,6 @@
 import type {
   ModuleConfig,
+  ModuleInstance,
   ModuleLoader,
   ModuleOptions,
   ModuleSetupReturn
@@ -11,6 +12,21 @@ export function isModuleInstalled(config: ModuleConfig<any, any>): boolean {
 
 export function isModuleDisposed(config: ModuleConfig<any, any>): boolean {
   return Boolean(config.resolved?.disposed);
+}
+
+export function isModuleLoader<
+  T extends ModuleOptions,
+  R extends ModuleSetupReturn
+>(value: unknown): value is ModuleLoader<T, R> {
+  return typeof value === 'function';
+}
+
+export function isModuleInstance(value: any): value is ModuleInstance {
+  return typeof value === 'object' && value !== null && 'config' in value;
+}
+
+export function isModuleConfig(value: any): value is ModuleConfig {
+  return typeof value === 'object' && value !== null && 'loader' in value;
 }
 
 export function getModuleName(
@@ -35,13 +51,6 @@ export function getModuleOptions<T extends ModuleOptions>(
   config: ModuleConfig<T, any>
 ): T | undefined {
   return config.resolved?.options;
-}
-
-export function isModuleLoader<
-  T extends ModuleOptions,
-  R extends ModuleSetupReturn
->(value: unknown): value is ModuleLoader<T, R> {
-  return typeof value === 'function';
 }
 
 export function moduleEquals(
