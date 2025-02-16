@@ -18,6 +18,8 @@ export type IsStrictNames = ModuleTypeConfig extends { strictNames: true }
   ? true
   : false;
 
+export type AnyModuleName = IsStrictNames extends true ? never : string;
+
 export interface ModuleMap {}
 
 export type ModuleKeys = (keyof ModuleMap)[];
@@ -125,7 +127,7 @@ export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
   getModule<K extends ModuleKey, TOpt extends ModuleOptions = ModuleOptions>(
     name: K
   ): ModuleInstance<TOpt, ModuleValue<K>> | undefined;
-  getModule(name: string): ModuleInstance | undefined;
+  getModule(name: AnyModuleName): ModuleInstance | undefined;
 
   installModule: ModuleInstallFunction;
 
