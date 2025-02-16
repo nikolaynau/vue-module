@@ -12,6 +12,12 @@ export type ModuleOptions = Record<string, any>;
 
 export type ModuleSetupReturn = Record<string, any>;
 
+export interface ModuleTypeConfig {}
+
+export type IsStrictNames = ModuleTypeConfig extends { strictNames: true }
+  ? true
+  : false;
+
 export interface ModuleMap {}
 
 export type ModuleKeys = (keyof ModuleMap)[];
