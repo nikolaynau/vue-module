@@ -12,14 +12,6 @@ export type ModuleOptions = Record<string, any>;
 
 export type ModuleSetupReturn = Record<string, any>;
 
-export interface ModuleTypeConfig {}
-
-export type IsStrictNames = ModuleTypeConfig extends { strictNames: true }
-  ? true
-  : false;
-
-export type AnyModuleName = IsStrictNames extends true ? never : string;
-
 export interface ModuleMap {}
 
 export type ModuleKeys = (keyof ModuleMap)[];
@@ -35,6 +27,18 @@ export type InferModuleValue<K> = K extends ModuleKey
 export type ConditionalModuleType<T, TrueType, FalseType> = T extends ModuleKey
   ? TrueType
   : FalseType;
+
+export interface ModuleTypeConfig {}
+
+export type IsStrictMode = ModuleTypeConfig extends { strictMode: true }
+  ? true
+  : false;
+
+export type AnyOrNeverModuleKey = IsStrictMode extends true ? never : string;
+
+export type StrictOrAnyModuleKey = IsStrictMode extends true
+  ? ModuleKey
+  : string;
 
 export type ModuleSetupFunction<
   T extends ModuleOptions = ModuleOptions,
@@ -127,7 +131,7 @@ export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
   getModule<K extends ModuleKey, TOpt extends ModuleOptions = ModuleOptions>(
     name: K
   ): ModuleInstance<TOpt, ModuleValue<K>> | undefined;
-  getModule(name: AnyModuleName): ModuleInstance | undefined;
+  getModule(name: AnyOrNeverModuleKey): ModuleInstance | undefined;
 
   installModule: ModuleInstallFunction;
 
@@ -140,7 +144,7 @@ export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
 }
 
 export interface InstallHook<T extends ModuleOptions = ModuleOptions> {
-  <K extends string[]>(
+  <K extends StrictOrAnyModuleKey[]>(
     name: [...K],
     fn: ModuleHookCallback<{
       [P in keyof K]: ConditionalModuleType<
@@ -160,7 +164,7 @@ export interface InstallHook<T extends ModuleOptions = ModuleOptions> {
 
   (name: 'all', fn: ModuleHookCallback<ResolvedModule[]>): void;
 
-  <T extends string>(name: T, fn: ModuleHookCallback<ResolvedModule>): void;
+  (name: AnyOrNeverModuleKey, fn: ModuleHookCallback<ResolvedModule>): void;
 
   (fn: ModuleHookCallback<ResolvedModule<T>>): void;
 }
@@ -173,7 +177,7 @@ export interface UninstallHook<T extends ModuleOptions = ModuleOptions> {
 
   (name: 'any', fn: ModuleHookCallback<ResolvedModule>): void;
 
-  <T extends string>(name: T, fn: ModuleHookCallback<ResolvedModule>): void;
+  (name: AnyOrNeverModuleKey, fn: ModuleHookCallback<ResolvedModule>): void;
 
   (fn: ModuleHookCallback<ResolvedModule<T>>): void;
 }
@@ -262,7 +266,7 @@ export interface ModuleManager {
   get<K extends ModuleKey>(
     name: K
   ): ModuleInstance<ModuleOptions, ModuleValue<K>> | undefined;
-  get(name: string): ModuleInstance | undefined;
+  get(name: AnyOrNeverModuleKey): ModuleInstance | undefined;
   get<T extends ModuleOptions, R extends ModuleSetupReturn>(
     config: ModuleConfig<T, R>
   ): ModuleInstance<T, R> | undefined;
@@ -272,7 +276,7 @@ export interface ModuleManager {
   get<K extends ModuleKey>(
     name: K[]
   ): ModuleInstance<ModuleOptions, ModuleValue<K>>[];
-  get(name: string[]): ModuleInstance[];
+  get(name: AnyOrNeverModuleKey[]): ModuleInstance[];
 
   getAt(index: number): ModuleInstance | undefined;
 
@@ -283,7 +287,7 @@ export interface ModuleManager {
   remove<K extends ModuleKey>(
     name: K
   ): ModuleInstance<ModuleOptions, ModuleValue<K>> | undefined;
-  remove(name: string): ModuleInstance | undefined;
+  remove(name: AnyOrNeverModuleKey): ModuleInstance | undefined;
   remove<T extends ModuleOptions, R extends ModuleSetupReturn>(
     config: ModuleConfig<T, R>
   ): ModuleInstance<T, R> | undefined;
@@ -294,14 +298,14 @@ export interface ModuleManager {
   removeAll(): void;
 
   has(name: ModuleKey): boolean;
-  has(name: string): boolean;
+  has(name: AnyOrNeverModuleKey): boolean;
   has(config: ModuleConfig<any, any>): boolean;
   has(module: ModuleInstance<any, any>): boolean;
 
   isInstalled(): boolean;
   isInstalled(config: ModuleConfig<any, any>): boolean;
   isInstalled(name: ModuleKey): boolean;
-  isInstalled(name: string): boolean;
+  isInstalled(name: AnyOrNeverModuleKey): boolean;
 
   install(
     filter?: (module: ModuleInstance) => boolean,
@@ -315,7 +319,7 @@ export interface ModuleManager {
   ): Promise<void>;
   uninstall(config: ModuleConfig<any, any>): Promise<void>;
   uninstall(name: ModuleKey): Promise<void>;
-  uninstall(name: string): Promise<void>;
+  uninstall(name: AnyOrNeverModuleKey): Promise<void>;
   uninstall(module: ModuleInstance<any, any>): Promise<void>;
 }
 
