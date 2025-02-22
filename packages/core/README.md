@@ -1,6 +1,6 @@
 # @vuemodule/core [![npm version](https://img.shields.io/npm/v/@vuemodule/core.svg)](https://npmjs.org/package/@vuemodule/core) [![npm downloads](https://img.shields.io/npm/dm/@vuemodule/core.svg)](https://npmjs.org/package/@vuemodule/core)
 
-> Core library for Vue Module, enabling dynamic module loading in Vue applications using async dynamic imports.
+> Load modules using the setup function for configuration and invoking hooks.
 
 [Documentation & Demo](https://vuemodule.org)
 
@@ -21,46 +21,23 @@ $ pnpm add @vuemodule/core
 
 ### Defining a Module
 
-#### moduleA.ts
+#### moduleA.js
 
-A module with input options and a return value:
-
-```ts
+```js
 import { defineModule } from '@vuemodule/core';
 
-export interface ModuleOptions {
-  foo: string;
-}
-
-export interface ModuleReturn {
-  bar: string;
-}
-
-declare module '@vuemodule/core' {
-  interface ModuleMap {
-    moduleA: ModuleReturn;
-  }
-}
-
-export default defineModule<ModuleOptions, ModuleReturn>(
-  'moduleA',
-  ({ options }) => {
-    console.log(options); // { foo: 'value' }
-
-    return {
-      bar: 'baz'
-    };
-  }
-);
+export default defineModule('moduleA', () => {
+  return {
+    bar: 'baz'
+  };
+});
 ```
 
 ### Using Hooks
 
-#### moduleB.ts
+#### moduleB.js
 
-A module using hooks to interact with another module:
-
-```ts
+```js
 import { defineModule } from '@vuemodule/core';
 
 export default defineModule(({ onInstalled, onUninstall }) => {
@@ -76,14 +53,14 @@ export default defineModule(({ onInstalled, onUninstall }) => {
 
 ### Installing Modules
 
-#### main.ts
+#### main.js
 
 Example of using a single module:
 
-```ts
+```js
 import { createModule } from '@vuemodule/core';
 
-const moduleA = createModule(() => import('./moduleA'), { foo: 'bar' });
+const moduleA = createModule(() => import('./moduleA'));
 
 // Install the module
 await moduleA.install();
@@ -96,15 +73,15 @@ await moduleA.uninstall();
 
 ### Managing Multiple Modules
 
-#### main.ts
+#### main.js
 
 Example of using multiple modules with called hooks:
 
-```ts
+```js
 import { createModules, createModule } from '@vuemodule/core';
 
 const modules = createModules([
-  createModule(() => import('./moduleA'), { foo: 'bar' }),
+  createModule(() => import('./moduleA')),
   createModule(() => import('./moduleB'))
 ]);
 
