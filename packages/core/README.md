@@ -81,8 +81,8 @@ Example of using multiple modules with called hooks:
 import { createModules, createModule } from '@vuemodule/core';
 
 const modules = createModules([
-  createModule(() => import('./moduleA')),
-  createModule(() => import('./moduleB'))
+  () => import('./moduleA'),
+  () => import('./moduleB')
 ]);
 
 // Install all modules

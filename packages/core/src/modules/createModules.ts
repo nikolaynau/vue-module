@@ -2,10 +2,14 @@ import type {
   Arrayable,
   InternalModuleManager,
   ModuleConfig,
+  ModuleDep,
   ModuleEnforce,
   ModuleExecutionOptions,
   ModuleInstance,
+  ModuleLoadConfig,
+  ModuleLoader,
   ModuleManager,
+  ModuleOptions,
   ModuleScope
 } from '../types';
 import {
@@ -16,8 +20,17 @@ import {
 } from '../module';
 import { handlePromises } from '../promise';
 import { createScope } from './createScope';
+import { isObject } from '../utils';
+import { createModule } from './createModule';
 
-export function createModules<T extends ModuleInstance<any, any>[]>(
+export type ModuleEntry =
+  | ModuleLoader<any, any>
+  | ModuleLoadConfig<any, any>
+  | [ModuleLoader<any, any>, ModuleOptions]
+  | [ModuleLoader<any, any>, ...ModuleDep[]]
+  | ModuleInstance<any, any>;
+
+export function createModules<T extends ModuleEntry[]>(
   modules: T
 ): ModuleManager {
   let scope: ModuleScope | undefined = undefined;
@@ -156,7 +169,17 @@ export function createModules<T extends ModuleInstance<any, any>[]>(
   function initialize(moduleScope: ModuleScope) {
     scope = moduleScope;
     if (Array.isArray(modules)) {
-      for (const module of modules) {
+      for (const moduleArgs of modules) {
+        let module: ModuleInstance;
+
+        if (Array.isArray(moduleArgs)) {
+          module = (createModule as any)(...moduleArgs);
+        } else if (isObject(moduleArgs) && isModuleInstance(moduleArgs)) {
+          module = moduleArgs;
+        } else {
+          module = (createModule as any)(moduleArgs);
+        }
+
         module.setScope(scope);
         moduleArray.push(module);
         addToMap(module);

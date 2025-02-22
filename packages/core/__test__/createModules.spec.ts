@@ -3,7 +3,10 @@ import type {
   ModuleInstance,
   ModuleEnforce,
   ModuleConfig,
-  ModuleScope
+  ModuleScope,
+  ModuleLoader,
+  ModuleLoadConfig,
+  ModuleDep
 } from '../src/types';
 import { createModules } from '../src/modules/createModules';
 
@@ -53,6 +56,39 @@ describe('ModuleManager', () => {
 
     expect(manager.getAt(0)).toEqual(moduleA);
     expect(manager.getAt(1)).toEqual(moduleB);
+  });
+
+  it('should initialize with mixed args', () => {
+    const moduleA = createDummyModule('moduleA');
+    const loaderB: ModuleLoader = () => Promise.resolve({});
+    const moduleC: ModuleLoadConfig = {
+      loader: () => Promise.resolve({})
+    };
+    const loaderD: ModuleLoader = () => Promise.resolve({});
+    const loaderE: ModuleLoader = () => Promise.resolve({});
+    const deps: ModuleDep[] = [() => {}, () => {}];
+
+    const manager = createModules([
+      moduleA,
+      loaderB,
+      moduleC,
+      [loaderD, { propA: 'a', propB: 'b' }],
+      [loaderE, ...deps]
+    ]);
+
+    expect(manager.getSize()).toBe(5);
+    expect(manager.isEmpty()).toBe(false);
+
+    expect(manager.getAt(0)).toEqual(moduleA);
+    expect(manager.getAt(1)?.config.loader).toBe(loaderB);
+    expect(manager.getAt(2)?.config.loader).toBe(moduleC.loader);
+    expect(manager.getAt(3)?.config.loader).toBe(loaderD);
+    expect(manager.getAt(3)?.config.options).toEqual({
+      propA: 'a',
+      propB: 'b'
+    });
+    expect(manager.getAt(4)?.config.loader).toBe(loaderE);
+    expect(manager.getAt(4)?.config.deps).toEqual(deps);
   });
 
   it('should retrieve a module by name, config, instance, and array of names', () => {
