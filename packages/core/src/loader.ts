@@ -34,7 +34,8 @@ export async function loadModule<
 
   const context = createModuleContext<T>(
     moduleDefinition.meta,
-    resolvedOptions
+    resolvedOptions,
+    config.scope
   );
 
   const moduleExports = await moduleDefinition.setup(context!);

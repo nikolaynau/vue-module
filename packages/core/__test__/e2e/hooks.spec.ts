@@ -229,6 +229,138 @@ describe('Hooks', () => {
         verifyInstallModuleHooks(moduleC, moduleA, moduleB);
       }
     );
+
+    it('manual hook invocation after module installation and adding to scope', async () => {
+      const moduleBDepAHook = vi.fn();
+
+      const moduleA = createTestModule('moduleA', () => {});
+      const moduleB = createTestModule('moduleB', ctx => {
+        ctx.onInstalled('moduleA', moduleBDepAHook);
+      });
+
+      const modules = createModules([moduleB]);
+
+      await modules.install();
+
+      expect(moduleBDepAHook).not.toHaveBeenCalled();
+
+      await moduleA.install();
+
+      expect(moduleBDepAHook).not.toHaveBeenCalled();
+
+      modules.add(moduleA);
+
+      expect(moduleBDepAHook).not.toHaveBeenCalled();
+
+      await moduleA.callHooks('installed');
+
+      expect(moduleBDepAHook).toHaveBeenCalled();
+    });
+
+    it('should call hooks if the module is installed after creating the scope', async () => {
+      const moduleBDepAHook = vi.fn();
+
+      const moduleA = createTestModule('moduleA', () => {});
+      const moduleB = createTestModule('moduleB', ctx => {
+        ctx.onInstalled('moduleA', moduleBDepAHook);
+      });
+
+      const modules = createModules([moduleB]);
+
+      await modules.install();
+
+      expect(moduleBDepAHook).not.toHaveBeenCalled();
+
+      await modules.install(moduleA);
+
+      expect(moduleBDepAHook).toHaveBeenCalled();
+    });
+
+    it('after module installation, hooks can access the module by name through context', async () => {
+      const moduleA = createTestModule('moduleA', ctx => {
+        ctx.onInstalled(() => {
+          expect(ctx.getModule('moduleA')).not.toBeUndefined();
+          expect(ctx.getModule('moduleA')?.getName()).toBe('moduleA');
+        });
+      });
+
+      const moduleB = createTestModule('moduleB', ctx => {
+        ctx.onInstalled('moduleA', () => {
+          expect(ctx.getModule('moduleA')).not.toBeUndefined();
+          expect(ctx.getModule('moduleB')).not.toBeUndefined();
+          expect(ctx.getModule('moduleA')?.getName()).toBe('moduleA');
+          expect(ctx.getModule('moduleB')?.getName()).toBe('moduleB');
+        });
+      });
+
+      const modules = createModules([moduleA, moduleB]);
+
+      await modules.install();
+
+      expect.assertions(6);
+    });
+
+    it('module installation inside the setup function', async () => {
+      const moduleADepBHook = vi.fn();
+      const moduleBDepAHook = vi.fn();
+
+      const moduleA = createTestModule('moduleA', ctx => {
+        ctx.onInstalled('moduleB', moduleADepBHook);
+      });
+      const moduleB = createTestModule('moduleB', async ctx => {
+        await ctx.installModule(moduleA);
+
+        ctx.onInstalled('moduleA', moduleBDepAHook);
+      });
+
+      const modules = createModules([moduleB]);
+
+      await modules.install();
+
+      expect(moduleADepBHook).toHaveBeenCalledOnce();
+      expect(moduleBDepAHook).toHaveBeenCalledOnce();
+    });
+
+    it('module installation inside hooks', async () => {
+      const moduleADepBHook = vi.fn();
+      const moduleADepCHook = vi.fn();
+
+      const moduleBDepAHook = vi.fn();
+      const moduleBDepCHook = vi.fn();
+
+      const moduleCDepAHook = vi.fn();
+      const moduleCDepBHook = vi.fn();
+
+      const moduleA = createTestModule('moduleA', ctx => {
+        ctx.onInstalled('moduleB', moduleADepBHook);
+        ctx.onInstalled('moduleC', moduleADepCHook);
+      });
+
+      const moduleB = createTestModule('moduleB', ctx => {
+        ctx.onInstalled('moduleA', moduleBDepAHook);
+        ctx.onInstalled('moduleC', moduleBDepCHook);
+      });
+
+      const moduleC = createTestModule('moduleC', ctx => {
+        ctx.onInstalled('moduleB', async () => {
+          moduleCDepBHook();
+          await ctx.installModule(moduleA);
+        });
+
+        ctx.onInstalled('moduleA', moduleCDepAHook);
+      });
+
+      const modules = createModules([moduleB, moduleC]);
+
+      await modules.install();
+
+      expect(moduleADepBHook).toHaveBeenCalledOnce();
+      expect(moduleADepCHook).toHaveBeenCalledOnce();
+      expect(moduleBDepAHook).toHaveBeenCalledOnce();
+      expect(moduleBDepCHook).toHaveBeenCalledOnce();
+      expect(moduleCDepAHook).toHaveBeenCalledOnce();
+      expect(moduleCDepBHook).toHaveBeenCalledOnce();
+    });
   });
 
   describe('Uninstal Hooks', () => {
