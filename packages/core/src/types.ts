@@ -231,7 +231,7 @@ export interface ModuleInstance<
 
   readonly name: string | undefined;
 
-  getExports(): R | undefined;
+  readonly exports: R | undefined;
 
   getOptions(): T | undefined;
 

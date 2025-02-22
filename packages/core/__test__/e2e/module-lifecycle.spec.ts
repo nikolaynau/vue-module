@@ -39,12 +39,12 @@ describe('Module Lifecycle', () => {
     const moduleA = createModule(moduleLoader, { foo: 'bar' });
 
     await moduleA.install();
-    expect(moduleA.getExports()).toEqual({ bar: 'baz' });
+    expect(moduleA.exports).toEqual({ bar: 'baz' });
     expect(moduleA.name).toBe('moduleA');
     expect(moduleA.isInstalled()).toBe(true);
 
     await moduleA.uninstall();
-    expect(moduleA.getExports()).toBeUndefined();
+    expect(moduleA.exports).toBeUndefined();
     expect(moduleA.isInstalled()).toBe(false);
 
     expect(setupFn).toHaveBeenCalledOnce();
@@ -96,12 +96,12 @@ describe('Module Lifecycle', () => {
 
     const moduleA = modules.get('moduleA')!;
     expect(moduleA).not.toBeUndefined();
-    expect(moduleA.getExports()).toEqual({ bar: 'baz' });
+    expect(moduleA.exports).toEqual({ bar: 'baz' });
     expect(moduleA.isInstalled()).toBe(true);
 
     const moduleB = modules.getAt(1)!;
     expect(moduleB).not.toBeUndefined();
-    expect(moduleB.getExports()).toBeUndefined();
+    expect(moduleB.exports).toBeUndefined();
     expect(moduleB.isInstalled()).toBe(true);
 
     expect(moduleASetup).toHaveBeenCalledOnce();
@@ -111,7 +111,7 @@ describe('Module Lifecycle', () => {
 
     await modules.uninstall();
 
-    expect(moduleA.getExports()).toBeUndefined();
+    expect(moduleA.exports).toBeUndefined();
     expect(moduleA.isInstalled()).toBe(false);
 
     expect(mockUninstallHook).toHaveBeenCalledOnce();
@@ -150,15 +150,15 @@ describe('Module Lifecycle', () => {
     await modules.install();
 
     expect(modules.get('moduleA')).not.toBeUndefined();
-    expect(modules.get('moduleA')?.getExports()).toEqual({ bar: 'baz' });
+    expect(modules.get('moduleA')?.exports).toEqual({ bar: 'baz' });
     expect(modules.get('moduleA')?.isInstalled()).toBe(true);
 
     expect(modules.get('moduleB')).not.toBeUndefined();
-    expect(modules.get('moduleB')?.getExports()).toEqual({ a: '1', b: 2 });
+    expect(modules.get('moduleB')?.exports).toEqual({ a: '1', b: 2 });
     expect(modules.get('moduleB')?.isInstalled()).toBe(true);
 
     expect(modules.get('moduleC')).not.toBeUndefined();
-    expect(modules.get('moduleC')?.getExports()).toBeUndefined();
+    expect(modules.get('moduleC')?.exports).toBeUndefined();
     expect(modules.get('moduleC')?.isInstalled()).toBe(true);
 
     expect(mockInstallHook).toHaveBeenCalledOnce();

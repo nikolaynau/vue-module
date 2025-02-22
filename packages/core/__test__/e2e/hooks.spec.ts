@@ -161,15 +161,15 @@ describe('Hooks', () => {
       await modules.install();
 
       expect(modules.get('moduleA')).not.toBeUndefined();
-      expect(modules.get('moduleA')?.getExports()).toEqual({ bar: 'baz' });
+      expect(modules.get('moduleA')?.exports).toEqual({ bar: 'baz' });
       expect(modules.get('moduleA')?.isInstalled()).toBe(true);
 
       expect(modules.get('moduleB')).not.toBeUndefined();
-      expect(modules.get('moduleB')?.getExports()).toEqual({ a: '1', b: 2 });
+      expect(modules.get('moduleB')?.exports).toEqual({ a: '1', b: 2 });
       expect(modules.get('moduleB')?.isInstalled()).toBe(true);
 
       expect(modules.get('moduleC')).not.toBeUndefined();
-      expect(modules.get('moduleC')?.getExports()).toBeUndefined();
+      expect(modules.get('moduleC')?.exports).toBeUndefined();
       expect(modules.get('moduleC')?.isInstalled()).toBe(true);
 
       expect(mockInstallHook).toHaveBeenCalledOnce();

@@ -64,11 +64,13 @@ export function createModule<
     get name() {
       return getModuleName(config);
     },
+    get exports() {
+      return getModuleExports(config);
+    },
     isInstalled,
     install,
     uninstall,
     equals,
-    getExports,
     getOptions,
     setScope,
     getScope,
@@ -103,10 +105,6 @@ export function createModule<
     } else if (type === 'uninstall') {
       await callUninstallHook(config, ignoreHookErrors, hookErrors);
     }
-  }
-
-  function getExports(): R | undefined {
-    return getModuleExports(config);
   }
 
   function getOptions(): T | undefined {
