@@ -229,7 +229,7 @@ export interface ModuleInstance<
 
   readonly id: number | undefined;
 
-  getName(): string | undefined;
+  readonly name: string | undefined;
 
   getExports(): R | undefined;
 

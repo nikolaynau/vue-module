@@ -80,7 +80,7 @@ describe('createModule', () => {
     expect(moduleInstance).toHaveProperty('isInstalled');
     expect(moduleInstance).toHaveProperty('equals');
     expect(moduleInstance).toHaveProperty('id');
-    expect(moduleInstance).toHaveProperty('getName');
+    expect(moduleInstance).toHaveProperty('name');
     expect(moduleInstance).toHaveProperty('getExports');
     expect(moduleInstance).toHaveProperty('getOptions');
     expect(moduleInstance).toHaveProperty('callHooks');
@@ -135,11 +135,11 @@ describe('createModule', () => {
     expect(moduleInstance.id).toBe(1);
   });
 
-  it('getName() should return the module name from getModuleName', () => {
+  it('name property should return the module name from getModuleName', () => {
     const moduleInstance: ModuleInstance = createModule(() =>
       Promise.resolve({})
     );
-    expect(moduleInstance.getName()).toBe('dummyName');
+    expect(moduleInstance.name).toBe('dummyName');
   });
 
   it('getExports() should return the module exports from getModuleExports', () => {

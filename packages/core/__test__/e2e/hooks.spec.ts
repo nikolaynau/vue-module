@@ -280,7 +280,7 @@ describe('Hooks', () => {
       const moduleA = createTestModule('moduleA', ctx => {
         ctx.onInstalled(() => {
           expect(ctx.getModule('moduleA')).not.toBeUndefined();
-          expect(ctx.getModule('moduleA')?.getName()).toBe('moduleA');
+          expect(ctx.getModule('moduleA')?.name).toBe('moduleA');
         });
       });
 
@@ -288,8 +288,8 @@ describe('Hooks', () => {
         ctx.onInstalled('moduleA', () => {
           expect(ctx.getModule('moduleA')).not.toBeUndefined();
           expect(ctx.getModule('moduleB')).not.toBeUndefined();
-          expect(ctx.getModule('moduleA')?.getName()).toBe('moduleA');
-          expect(ctx.getModule('moduleB')?.getName()).toBe('moduleB');
+          expect(ctx.getModule('moduleA')?.name).toBe('moduleA');
+          expect(ctx.getModule('moduleB')?.name).toBe('moduleB');
         });
       });
 
@@ -488,9 +488,9 @@ function verifyInstallModuleHooks(
   dep1: ReturnType<typeof createInstallHookTestCase>,
   dep2: ReturnType<typeof createInstallHookTestCase>
 ) {
-  const testName = testModule.testModule.getName();
-  const dep1Name = dep1.testModule.getName();
-  const dep2Name = dep2.testModule.getName();
+  const testName = testModule.testModule.name;
+  const dep1Name = dep1.testModule.name;
+  const dep2Name = dep2.testModule.name;
 
   expect(testModule.nullKeyHook).toHaveBeenCalledOnce();
   expect(testModule.nullKeyHook).toHaveBeenCalledWith(

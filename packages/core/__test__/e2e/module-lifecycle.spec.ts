@@ -40,7 +40,7 @@ describe('Module Lifecycle', () => {
 
     await moduleA.install();
     expect(moduleA.getExports()).toEqual({ bar: 'baz' });
-    expect(moduleA.getName()).toBe('moduleA');
+    expect(moduleA.name).toBe('moduleA');
     expect(moduleA.isInstalled()).toBe(true);
 
     await moduleA.uninstall();
