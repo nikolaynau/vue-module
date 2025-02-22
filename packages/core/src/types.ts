@@ -233,7 +233,7 @@ export interface ModuleInstance<
 
   readonly exports: R | undefined;
 
-  getOptions(): T | undefined;
+  readonly options: T | undefined;
 
   equals(other?: ModuleInstance<any, any>): boolean;
 

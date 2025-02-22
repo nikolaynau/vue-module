@@ -67,11 +67,13 @@ export function createModule<
     get exports() {
       return getModuleExports(config);
     },
+    get options() {
+      return getModuleOptions(config);
+    },
     isInstalled,
     install,
     uninstall,
     equals,
-    getOptions,
     setScope,
     getScope,
     callHooks,
@@ -105,10 +107,6 @@ export function createModule<
     } else if (type === 'uninstall') {
       await callUninstallHook(config, ignoreHookErrors, hookErrors);
     }
-  }
-
-  function getOptions(): T | undefined {
-    return getModuleOptions(config);
   }
 
   function setScope(scope: ModuleScope | undefined): void {
