@@ -79,7 +79,7 @@ describe('createModule', () => {
     expect(moduleInstance).toHaveProperty('uninstall');
     expect(moduleInstance).toHaveProperty('isInstalled');
     expect(moduleInstance).toHaveProperty('equals');
-    expect(moduleInstance).toHaveProperty('getId');
+    expect(moduleInstance).toHaveProperty('id');
     expect(moduleInstance).toHaveProperty('getName');
     expect(moduleInstance).toHaveProperty('getExports');
     expect(moduleInstance).toHaveProperty('getOptions');
@@ -128,11 +128,11 @@ describe('createModule', () => {
     expect(disposeModule).not.toHaveBeenCalled();
   });
 
-  it('getId() should return the module config id', () => {
+  it('id property should return the module config id', () => {
     const moduleInstance: ModuleInstance = createModule(() =>
       Promise.resolve({})
     );
-    expect(moduleInstance.getId()).toBe(1);
+    expect(moduleInstance.id).toBe(1);
   });
 
   it('getName() should return the module name from getModuleName', () => {

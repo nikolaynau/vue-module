@@ -55,12 +55,16 @@ export function createModule<
   const hookErrors: Error[] = [];
 
   const instance: ModuleInstance<T, R> = {
-    config,
+    get config() {
+      return config;
+    },
+    get id() {
+      return config.id;
+    },
     isInstalled,
     install,
     uninstall,
     equals,
-    getId,
     getName,
     getExports,
     getOptions,
@@ -97,10 +101,6 @@ export function createModule<
     } else if (type === 'uninstall') {
       await callUninstallHook(config, ignoreHookErrors, hookErrors);
     }
-  }
-
-  function getId(): number | undefined {
-    return config.id;
   }
 
   function getName(): string | undefined {

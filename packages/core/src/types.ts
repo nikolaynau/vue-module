@@ -227,7 +227,7 @@ export interface ModuleInstance<
 > {
   readonly config: ModuleConfig<T, R>;
 
-  getId(): number | undefined;
+  readonly id: number | undefined;
 
   getName(): string | undefined;
 
