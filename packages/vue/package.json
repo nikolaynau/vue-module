@@ -1,8 +1,8 @@
 {
-  "name": "@vuemodule/core",
+  "name": "@vuemodule/vue",
   "version": "1.0.3",
   "type": "module",
-  "description": "Load modules using the setup function for configuration and invoking hooks.",
+  "description": "Plugin and Composition API utilities for @vuemodule/core.",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
   "license": "MIT",
   "homepage": "https://github.com/nikolaynau/vue-module",

@@ -8,7 +8,7 @@
 
 ```bash
 # npm
-$ npm install @vuemodule/core
+$ npm add @vuemodule/core
 
 # yarn
 $ yarn add @vuemodule/core

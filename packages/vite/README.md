@@ -8,7 +8,7 @@
 
 ```bash
 # NPM
-$ npm install @vuemodule/vite
+$ npm add @vuemodule/vite
 
 # Yarn
 $ yarn add @vuemodule/vite
