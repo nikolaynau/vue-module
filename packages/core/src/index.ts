@@ -2,8 +2,30 @@ export * from './types';
 
 export { defineModule } from './define';
 
-export { createModule, createModules } from './modules';
-
 export { loadModule } from './loader';
 
 export { callInstallHook, callUninstallHook } from './hooks';
+
+export { handlePromises } from './promise';
+
+export { newId, getVersion } from './utils';
+
+export {
+  createModule,
+  createModules,
+  createConfig,
+  createScope
+} from './modules';
+
+export {
+  isModuleInstalled,
+  isModuleDisposed,
+  isModuleInstance,
+  isModuleConfig,
+  getModuleName,
+  getModuleVersion,
+  getModuleExports,
+  getModuleOptions,
+  moduleEquals,
+  disposeModule
+} from './module';

@@ -3,71 +3,69 @@ import { createModuleContext } from '../src/context';
 import * as moduleUtils from '../src/module';
 import * as configUtils from '../src/modules/createModule';
 import type {
-  InternalModuleContext,
-  ModuleContext,
   ModuleInstance,
   ModuleLoadConfig,
   ModuleManager,
   ModuleScope
 } from '../src/types';
 
-function createTestContext<T = ModuleContext>(): T {
+function createTestContext() {
   return createModuleContext(
     { name: 'test-module', version: '1.0.0' },
     { optionA: true }
-  ) as T;
+  );
 }
 
 describe('createModuleContext', () => {
   it('should create a module context with default metadata and options', () => {
-    const context = createTestContext();
+    const [context] = createTestContext();
     expect(context.meta.name).toBe('test-module');
     expect(context.meta.version).toBe('1.0.0');
     expect(context.options).toEqual({ optionA: true });
   });
 
   it('should create an empty module context without errors', () => {
-    const context = createModuleContext();
+    const [context] = createModuleContext();
     expect(context.meta).toEqual({});
     expect(context.options).toEqual({});
   });
 
   it('should set the module name correctly', () => {
-    const context = createTestContext();
+    const [context] = createTestContext();
     context.setName('new-name');
     expect(context.meta.name).toBe('new-name');
   });
 
   it('should set the module version correctly', () => {
-    const context = createTestContext();
+    const [context] = createTestContext();
     context.setVersion('2.0.0');
     expect(context.meta.version).toBe('2.0.0');
   });
 
   it('should update metadata correctly', () => {
-    const context = createTestContext();
+    const [context] = createTestContext();
     context.setMeta({ description: 'A test module' });
     expect(context.meta.description).toBe('A test module');
   });
 
   it('should register onInstalled hooks correctly', () => {
-    const context = createTestContext<InternalModuleContext>();
+    const [context, hooks] = createTestContext();
     const hookCallback = vi.fn();
 
     context.onInstalled('test-module', hookCallback);
-    expect(context._hooks).toHaveLength(1);
-    expect(context._hooks[0].type).toBe('installed');
-    expect(context._hooks[0].callback).toBe(hookCallback);
+    expect(hooks).toHaveLength(1);
+    expect(hooks[0].type).toBe('installed');
+    expect(hooks[0].callback).toBe(hookCallback);
   });
 
   it('should register onUninstall hooks correctly', () => {
-    const context = createTestContext<InternalModuleContext>();
+    const [context, hooks] = createTestContext();
     const hookCallback = vi.fn();
 
     context.onUninstall('test-module', hookCallback);
-    expect(context._hooks).toHaveLength(1);
-    expect(context._hooks[0].type).toBe('uninstall');
-    expect(context._hooks[0].callback).toBe(hookCallback);
+    expect(hooks).toHaveLength(1);
+    expect(hooks[0].type).toBe('uninstall');
+    expect(hooks[0].callback).toBe(hookCallback);
   });
 
   it('should install the module using scope.modules.install when a scope is provided and the argument is a module instance', async () => {
@@ -80,7 +78,7 @@ describe('createModuleContext', () => {
         install: vi.fn(() => Promise.resolve())
       } as unknown as ModuleManager
     } as ModuleScope;
-    const context = createModuleContext({}, {}, fakeScope);
+    const [context] = createModuleContext({}, {}, fakeScope);
 
     const result = await context.installModule(fakeModule);
 
@@ -94,7 +92,7 @@ describe('createModuleContext', () => {
     } as unknown as ModuleInstance;
 
     vi.spyOn(moduleUtils, 'isModuleInstance').mockReturnValue(true);
-    const context = createModuleContext();
+    const [context] = createModuleContext();
 
     const result = await context.installModule(fakeModule);
 
@@ -112,7 +110,7 @@ describe('createModuleContext', () => {
     const createModuleSpy = vi
       .spyOn(configUtils, 'createModule')
       .mockReturnValue(fakeModule);
-    const context = createModuleContext();
+    const [context] = createModuleContext();
 
     const loadConfig = {} as ModuleLoadConfig;
     const result = await context.installModule(loadConfig);
@@ -133,7 +131,7 @@ describe('createModuleContext', () => {
       )
     } as unknown as ModuleManager;
     const fakeScope: ModuleScope = { modules: fakeModules };
-    const context = createModuleContext({}, {}, fakeScope);
+    const [context] = createModuleContext({}, {}, fakeScope);
 
     const result = context.getModule('testModule');
 
@@ -142,7 +140,7 @@ describe('createModuleContext', () => {
   });
 
   it('should return undefined when no scope is provided', () => {
-    const context = createModuleContext();
+    const [context] = createModuleContext();
 
     const result = context.getModule('anyModule');
 

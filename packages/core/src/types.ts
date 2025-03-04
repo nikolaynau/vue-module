@@ -138,11 +138,6 @@ export interface ModuleContext<T extends ModuleOptions = ModuleOptions> {
   getScope(): ModuleScope | undefined;
 }
 
-export interface InternalModuleContext<T extends ModuleOptions = ModuleOptions>
-  extends ModuleContext<T> {
-  _hooks: ModuleHookConfig[];
-}
-
 export interface InstallHook<T extends ModuleOptions = ModuleOptions> {
   <K extends StrictOrAnyModuleKey[]>(
     name: [...K],

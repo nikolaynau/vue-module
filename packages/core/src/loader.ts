@@ -1,6 +1,5 @@
 import { createModuleContext } from './context';
 import type {
-  InternalModuleContext,
   ModuleConfig,
   ModuleDefinition,
   ModuleLoader,
@@ -32,7 +31,7 @@ export async function loadModule<
     moduleDefinition.meta
   );
 
-  const context = createModuleContext<T>(
+  const [context, hooks] = createModuleContext<T>(
     moduleDefinition.meta,
     resolvedOptions,
     config.scope
@@ -47,7 +46,7 @@ export async function loadModule<
     options: context.options,
     exports: moduleExports as R,
     meta: context.meta,
-    hooks: (context as InternalModuleContext)._hooks,
+    hooks: [...hooks],
     disposed: false
   };
 

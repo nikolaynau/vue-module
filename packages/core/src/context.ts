@@ -1,5 +1,4 @@
 import type {
-  InternalModuleContext,
   ModuleContext,
   ModuleHookCallback,
   ModuleHookConfig,
@@ -16,7 +15,7 @@ export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
   meta?: ModuleMeta,
   options?: T,
   scope?: ModuleScope
-): ModuleContext<T> {
+): [ModuleContext<T>, ModuleHookConfig[]] {
   const _meta: ModuleMeta = { ...meta };
   const _options = options ?? ({} as T);
   const _hooks: ModuleHookConfig[] = [];
@@ -84,10 +83,9 @@ export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
     };
   }
 
-  const context: InternalModuleContext<T> = {
+  const context: ModuleContext<T> = {
     meta: _meta,
     options: _options,
-    _hooks,
     setName,
     setVersion,
     setMeta,
@@ -98,5 +96,5 @@ export function createModuleContext<T extends ModuleOptions = ModuleOptions>(
     onUninstall
   };
 
-  return context;
+  return [context, _hooks];
 }
