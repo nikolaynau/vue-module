@@ -327,6 +327,16 @@ export interface ModuleScope {
   modules: ModuleManager;
 }
 
+export type ModuleEntry<
+  T extends ModuleOptions = ModuleOptions,
+  R extends ModuleSetupReturn = ModuleSetupReturn
+> =
+  | ModuleLoader<T, R>
+  | ModuleLoadConfig<T, R>
+  | [ModuleLoader<T, R>, T]
+  | [ModuleLoader<T, R>, ...ModuleDep[]]
+  | ModuleInstance<T, R>;
+
 export interface ModuleErrorHandlingOptions {
   suppressErrors?: boolean;
   errors?: Error[];

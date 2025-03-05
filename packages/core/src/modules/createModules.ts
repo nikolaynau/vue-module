@@ -2,14 +2,11 @@ import type {
   Arrayable,
   InternalModuleManager,
   ModuleConfig,
-  ModuleDep,
   ModuleEnforce,
+  ModuleEntry,
   ModuleExecutionOptions,
   ModuleInstance,
-  ModuleLoadConfig,
-  ModuleLoader,
   ModuleManager,
-  ModuleOptions,
   ModuleScope
 } from '../types';
 import {
@@ -23,14 +20,7 @@ import { createScope } from './createScope';
 import { isObject } from '../utils';
 import { createModule } from './createModule';
 
-export type ModuleEntry =
-  | ModuleLoader<any, any>
-  | ModuleLoadConfig<any, any>
-  | [ModuleLoader<any, any>, ModuleOptions]
-  | [ModuleLoader<any, any>, ...ModuleDep[]]
-  | ModuleInstance<any, any>;
-
-export function createModules<T extends ModuleEntry[]>(
+export function createModules<T extends ModuleEntry<any, any>[]>(
   modules: T
 ): ModuleManager {
   let scope: ModuleScope | undefined = undefined;

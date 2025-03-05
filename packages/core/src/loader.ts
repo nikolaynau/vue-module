@@ -50,6 +50,8 @@ export async function loadModule<
     disposed: false
   };
 
+  hooks.length = 0;
+
   return config;
 }
 
