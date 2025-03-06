@@ -20,6 +20,8 @@ export type ModuleKey = keyof ModuleMap;
 
 export type ModuleValue<K extends ModuleKey> = ModuleMap[K];
 
+export type ModuleId = number;
+
 export type InferModuleValue<K> = K extends ModuleKey
   ? ModuleMap[K]
   : ModuleSetupReturn;
@@ -79,7 +81,7 @@ export interface ModuleConfig<
   deps?: ModuleDep[];
   resolved?: ResolvedModule<T, R>;
   scope?: ModuleScope;
-  id?: number;
+  id?: ModuleId;
 }
 
 export type ModuleHookType = 'installed' | 'uninstall';
@@ -222,13 +224,15 @@ export interface ModuleInstance<
 > {
   readonly config: ModuleConfig<T, R>;
 
-  readonly id: number | undefined;
+  readonly id: ModuleId;
 
   readonly name: string | undefined;
 
   readonly exports: R | undefined;
 
   readonly options: T | undefined;
+
+  readonly meta: ModuleMeta | undefined;
 
   equals(other?: ModuleInstance<any, any>): boolean;
 

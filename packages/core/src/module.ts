@@ -2,6 +2,7 @@ import type {
   ModuleConfig,
   ModuleInstance,
   ModuleLoader,
+  ModuleMeta,
   ModuleOptions,
   ModuleSetupReturn
 } from './types';
@@ -51,6 +52,12 @@ export function getModuleOptions<T extends ModuleOptions>(
   config: ModuleConfig<T, any>
 ): T | undefined {
   return config.resolved?.options;
+}
+
+export function getModuleMeta(
+  config: ModuleConfig<any, any>
+): ModuleMeta | undefined {
+  return config.resolved?.meta;
 }
 
 export function moduleEquals(

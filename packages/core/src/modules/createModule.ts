@@ -14,6 +14,7 @@ import { loadModule } from '../loader';
 import {
   disposeModule,
   getModuleExports,
+  getModuleMeta,
   getModuleName,
   getModuleOptions,
   isModuleInstalled,
@@ -59,7 +60,7 @@ export function createModule<
       return config;
     },
     get id() {
-      return config.id;
+      return config.id!;
     },
     get name() {
       return getModuleName(config);
@@ -69,6 +70,9 @@ export function createModule<
     },
     get options() {
       return getModuleOptions(config);
+    },
+    get meta() {
+      return getModuleMeta(config);
     },
     isInstalled,
     install,
