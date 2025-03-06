@@ -5,12 +5,15 @@ import dts from 'vite-plugin-dts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const MODULE_CORE_LIB = '@vuemodule/core';
+
 export default defineConfig({
   plugins: [
     dts({
       include: ['src'],
       tsconfigPath: 'tsconfig.json',
-      rollupTypes: true
+      rollupTypes: true,
+      aliasesExclude: [MODULE_CORE_LIB]
     })
   ],
   build: {
@@ -20,11 +23,11 @@ export default defineConfig({
       fileName: format => `index.${format}.js`
     },
     rollupOptions: {
-      external: ['vue', '@vuemodule/core'],
+      external: ['vue', MODULE_CORE_LIB],
       output: {
         globals: {
           vue: 'Vue',
-          '@vuemodule/core': 'VueModuleCore'
+          [MODULE_CORE_LIB]: 'VueModuleCore'
         }
       }
     },
