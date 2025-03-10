@@ -22,6 +22,7 @@ export {
   isModuleDisposed,
   isModuleInstance,
   isModuleConfig,
+  isModuleLoader,
   getModuleName,
   getModuleVersion,
   getModuleExports,
