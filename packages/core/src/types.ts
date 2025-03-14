@@ -20,7 +20,7 @@ export type ModuleKey = keyof ModuleMap;
 
 export type ModuleValue<K extends ModuleKey> = ModuleMap[K];
 
-export type ModuleId = number;
+export type ModuleId = number | string;
 
 export type InferModuleValue<K> = K extends ModuleKey
   ? ModuleMap[K]
@@ -69,7 +69,7 @@ export type ModuleLoader<
 export type ModuleLoadConfig<
   T extends ModuleOptions = ModuleOptions,
   R extends ModuleSetupReturn = ModuleSetupReturn
-> = Omit<ModuleConfig<T, R>, 'resolved' | 'id' | 'scope'>;
+> = Omit<ModuleConfig<T, R>, 'resolved'>;
 
 export interface ModuleConfig<
   T extends ModuleOptions = ModuleOptions,

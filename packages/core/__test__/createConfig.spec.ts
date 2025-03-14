@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createConfig } from '../src/modules/createConfig';
-import type { ModuleDep } from '../src/types';
+import type { ModuleDep, ModuleScope } from '../src/types';
 
 describe('createConfig', () => {
   it('should create config with loader and options when loader is provided as a function', () => {
@@ -60,6 +60,24 @@ describe('createConfig', () => {
     expect(config.options).toEqual(options);
     expect(config.enforce).toBe(enforce);
     expect(config.deps).toEqual([dep]);
+  });
+
+  it('should create config from a ModuleLoadConfig object with loader, id and scope', () => {
+    const loader = vi.fn();
+    const scope = {} as ModuleScope;
+    const id = 'module-id';
+
+    const loaderConfig = {
+      loader: loader,
+      scope,
+      id
+    };
+
+    const config = createConfig(loaderConfig);
+
+    expect(config.loader).toBe(loader);
+    expect(config.scope).toEqual(scope);
+    expect(config.id).toBe(id);
   });
 
   it('should create config from a ModuleLoadConfig object with a function as options', () => {

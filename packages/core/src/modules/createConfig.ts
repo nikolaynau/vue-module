@@ -5,7 +5,9 @@ import type {
   ModuleLoader,
   ModuleOptions,
   ModuleEnforce,
-  ModuleSetupReturn
+  ModuleSetupReturn,
+  ModuleScope,
+  ModuleId
 } from '../types';
 import { isModuleLoader } from '../module';
 import { newId } from '../utils';
@@ -18,7 +20,7 @@ export function createConfig<
   optionsOrDep?: T | ModuleDep,
   ...moduleDeps: ModuleDep[]
 ): ModuleConfig<T, R> {
-  const { loader, options, enforce, deps } = parseLoaderConfig(
+  const { loader, options, enforce, deps, scope, id } = parseLoaderConfig(
     loaderOrConfig,
     optionsOrDep,
     moduleDeps
@@ -29,13 +31,13 @@ export function createConfig<
   }
 
   const config: ModuleConfig<T, R> = {
-    id: newId(),
+    id: id ?? newId(),
     loader,
     options,
     enforce,
     deps,
     resolved: undefined,
-    scope: undefined
+    scope
   };
 
   return config;
@@ -51,7 +53,9 @@ function parseLoaderConfig<
 ) {
   let loader: ModuleLoader<T, R> | undefined = undefined;
   let options: ModuleConfig<T, R>['options'] = undefined;
-  let enforce: ModuleEnforce | undefined;
+  let enforce: ModuleEnforce | undefined = undefined;
+  let scope: ModuleScope | undefined = undefined;
+  let id: ModuleId | undefined = undefined;
   const deps: ModuleDep[] = [];
 
   if (isModuleLoader<T, R>(loaderOrConfig)) {
@@ -69,6 +73,8 @@ function parseLoaderConfig<
   } else if (isModuleLoader(loaderOrConfig.loader)) {
     loader = loaderOrConfig.loader;
     enforce = loaderOrConfig.enforce;
+    scope = loaderOrConfig.scope;
+    id = loaderOrConfig.id;
 
     if (Array.isArray(loaderOrConfig.deps)) {
       deps.push(...loaderOrConfig.deps);
@@ -81,5 +87,5 @@ function parseLoaderConfig<
     }
   }
 
-  return { loader, options, enforce, deps };
+  return { loader, options, enforce, deps, scope, id };
 }
