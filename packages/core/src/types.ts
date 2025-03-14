@@ -101,8 +101,8 @@ export interface ModuleHookConfig {
   callback: ModuleHookCallback;
   lock?: boolean;
   called?: boolean;
-  lockFor?: Map<number, boolean>;
-  calledFor?: Map<number, boolean>;
+  lockFor?: Map<ModuleId, boolean>;
+  calledFor?: Map<ModuleId, boolean>;
 }
 
 export interface ResolvedModule<
