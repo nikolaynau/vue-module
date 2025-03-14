@@ -12,15 +12,17 @@ export interface PluginOptions {
 
 export const VuePlugin: Plugin<PluginOptions> = {
   install(app, options) {
-    let modules: ModuleManager | undefined = undefined;
+    let modules: ModuleManager;
 
     if (Array.isArray(options.modules)) {
       modules = createModules(options.modules);
     } else if (options.modules) {
       modules = options.modules;
+    } else {
+      modules = createModules([]);
     }
 
-    const scope = modules?.getScope();
+    const scope = modules.getScope();
     if (scope) {
       provideModuleScope(scope);
     }

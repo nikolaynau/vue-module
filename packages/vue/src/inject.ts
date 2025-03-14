@@ -7,6 +7,10 @@ export function provideModuleScope(moduleManager: ModuleScope) {
   provide(moduleScopeKey, moduleManager);
 }
 
-export function useModuleScope(): ModuleScope | undefined {
-  return inject(moduleScopeKey);
+export function useModuleScope(): ModuleScope {
+  const scope = inject(moduleScopeKey);
+  if (!scope) {
+    throw new Error('ModuleScope is not provided');
+  }
+  return scope;
 }
