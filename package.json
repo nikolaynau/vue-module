@@ -1,7 +1,7 @@
 {
   "private": true,
   "version": "1.0.3",
-  "packageManager": "pnpm@10.4.1",
+  "packageManager": "pnpm@10.6.3",
   "type": "module",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
   "license": "MIT",
