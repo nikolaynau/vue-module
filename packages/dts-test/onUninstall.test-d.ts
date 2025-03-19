@@ -1,6 +1,6 @@
 import { expectType, expectError } from 'tsd';
 import { defineModule } from '@vuemodule/core';
-import type { ModuleOptions, ResolvedModule } from '@vuemodule/core';
+import type { ModuleOptions, ModuleConfig } from '@vuemodule/core';
 import type { ModuleAReturn } from './moduleA';
 import './moduleB';
 
@@ -17,15 +17,15 @@ defineModule(({ onUninstall }) => {
   expectType<void>(onUninstall(() => {}));
 
   onUninstall('moduleA', resolved => {
-    expectType<ResolvedModule<ModuleOptions, ModuleAReturn>>(resolved);
+    expectType<ModuleConfig<ModuleOptions, ModuleAReturn>>(resolved);
   });
 
   onUninstall('any', resolved => {
-    expectType<ResolvedModule>(resolved);
+    expectType<ModuleConfig>(resolved);
   });
 
   onUninstall(resolved => {
-    expectType<ResolvedModule>(resolved);
+    expectType<ModuleConfig>(resolved);
   });
 
   // Error

@@ -17,8 +17,7 @@ import {
   type ModuleHookType,
   type ModuleInstance,
   type ModuleManager,
-  type ModuleScope,
-  type ResolvedModule
+  type ModuleScope
 } from '../src/types';
 
 function createTestScope(
@@ -64,7 +63,7 @@ describe('invokeNullKeyHooks', () => {
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(moduleConfig.resolved);
+    expect(callback).toHaveBeenCalledWith(moduleConfig);
   });
 
   it('should not call the callback if there are no hooks with a null key', async () => {
@@ -100,10 +99,9 @@ describe('invokeAllKeyHooks', () => {
       called: false
     };
     const moduleConfig = { resolved: { hooks: [hook] } } as ModuleConfig;
-    const fakeModuleResolved = {} as ResolvedModule;
     const fakeModule = {
       isInstalled: () => true,
-      config: { resolved: fakeModuleResolved }
+      config: { resolved: {} }
     } as ModuleInstance;
     const scope = createTestScope(fakeModule, [fakeModule], true);
 
@@ -114,7 +112,7 @@ describe('invokeAllKeyHooks', () => {
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith([fakeModuleResolved]);
+    expect(callback).toHaveBeenCalledWith([fakeModule.config]);
   });
 });
 
@@ -136,7 +134,7 @@ describe('invokeAnyKeyHooks', () => {
     expect(hook.lockFor?.get(source.id!)).toBe(false);
     expect(hook.calledFor?.get(source.id!)).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(source.resolved);
+    expect(callback).toHaveBeenCalledWith(source);
   });
 
   it('should not call the callback if there is no matching hook', async () => {
@@ -211,7 +209,7 @@ describe('invokeSpecKeyHooks', () => {
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(moduleA.config.resolved);
+    expect(callback).toHaveBeenCalledWith(moduleA.config);
   });
 
   it('should not call the callback if the source has no name', async () => {
@@ -288,10 +286,7 @@ describe('invokeSpecKeyArrayHooks', () => {
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith([
-      moduleA.config.resolved,
-      moduleB.config.resolved
-    ]);
+    expect(callback).toHaveBeenCalledWith([moduleA.config, moduleB.config]);
   });
 
   it('should not call the callback for hooks with an array of keys if not all modules are installed', async () => {
@@ -356,7 +351,7 @@ describe('invokeHook', () => {
     expect(hook.lock).toBe(false);
     expect(hook.called).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(target.resolved);
+    expect(callback).toHaveBeenCalledWith(target);
   });
 
   it('should add the error to errors when suppressErrors is true', async () => {
@@ -417,7 +412,7 @@ describe('invokeAnyHook', () => {
     expect(hook.lockFor?.get(target.id!)).toBe(false);
     expect(hook.calledFor?.get(target.id!)).toBe(true);
 
-    expect(callback).toHaveBeenCalledWith(target.resolved);
+    expect(callback).toHaveBeenCalledWith(target);
   });
 
   it('should add the error to errors when suppressErrors is true', async () => {

@@ -3,8 +3,7 @@ import {
   type ModuleHookConfig,
   type ModuleHookType,
   type ModuleConfig,
-  type ModuleScope,
-  type ResolvedModule
+  type ModuleScope
 } from '../types';
 
 export async function invokeNullKeyHooks(
@@ -220,16 +219,7 @@ export async function invokeHookCallback(
   hook: ModuleHookConfig,
   target: ModuleConfig | ModuleConfig[]
 ): Promise<void> {
-  if (Array.isArray(target)) {
-    const resolvedArray = target
-      .map(c => c.resolved)
-      .filter(r => !!r) as ResolvedModule[];
-    if (resolvedArray.length === target.length) {
-      await hook.callback(resolvedArray);
-    }
-  } else if (target.resolved) {
-    await hook.callback(target.resolved);
-  }
+  await hook.callback(target);
 }
 
 export function areAllModulesInstalled(scope: ModuleScope): boolean {

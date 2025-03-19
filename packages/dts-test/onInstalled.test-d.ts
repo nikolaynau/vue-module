@@ -5,7 +5,7 @@ import type {
   ModuleKeys,
   ModuleOptions,
   ModuleValue,
-  ResolvedModule
+  ModuleConfig
 } from '@vuemodule/core';
 import type { ModuleAReturn } from './moduleA';
 import './moduleB';
@@ -29,29 +29,27 @@ defineModule(({ onInstalled }) => {
   expectType<void>(onInstalled(() => {}));
 
   onInstalled('moduleA', resolved => {
-    expectType<ResolvedModule<ModuleOptions, ModuleAReturn>>(resolved);
+    expectType<ModuleConfig<ModuleOptions, ModuleAReturn>>(resolved);
   });
 
   onInstalled('any', resolved => {
-    expectType<ResolvedModule>(resolved);
+    expectType<ModuleConfig>(resolved);
   });
 
   onInstalled('all', resolved => {
-    expectType<ResolvedModule[]>(resolved);
+    expectType<ModuleConfig[]>(resolved);
   });
 
   onInstalled(resolved => {
-    expectType<ResolvedModule>(resolved);
+    expectType<ModuleConfig>(resolved);
   });
 
   onInstalled(
     ['moduleA', 'customModule', 'moduleB'],
     ([moduleA, customModule, moduleB]) => {
-      expectType<ResolvedModule<ModuleOptions, ModuleAReturn>>(moduleA);
-      expectType<ResolvedModule>(customModule);
-      expectType<ResolvedModule<ModuleOptions, ModuleValue<'moduleB'>>>(
-        moduleB
-      );
+      expectType<ModuleConfig<ModuleOptions, ModuleAReturn>>(moduleA);
+      expectType<ModuleConfig>(customModule);
+      expectType<ModuleConfig<ModuleOptions, ModuleValue<'moduleB'>>>(moduleB);
     }
   );
 

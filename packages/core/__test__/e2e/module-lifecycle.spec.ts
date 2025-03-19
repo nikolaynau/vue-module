@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createModule, createModules, defineModule } from '../../src';
 import type {
+  ModuleConfig,
   ModuleLoader,
   ModuleOptions,
   ModuleSetupFunction,
-  ModuleSetupReturn,
-  ResolvedModule
+  ModuleSetupReturn
 } from '../../src';
 
 function createTestLoader<
@@ -60,13 +60,13 @@ describe('Module Lifecycle', () => {
   it('should install and uninstall multiple modules with hooks', async () => {
     const mockInstallHook = vi
       .fn()
-      .mockImplementation((module: ResolvedModule) => {
-        expect(module.exports).toEqual({ bar: 'baz' });
+      .mockImplementation((module: ModuleConfig) => {
+        expect(module.resolved?.exports).toEqual({ bar: 'baz' });
       });
     const mockUninstallHook = vi
       .fn()
-      .mockImplementation((module: ResolvedModule) => {
-        expect(module.exports).toEqual({ bar: 'baz' });
+      .mockImplementation((module: ModuleConfig) => {
+        expect(module.resolved?.exports).toEqual({ bar: 'baz' });
       });
 
     const moduleASetup = vi.fn().mockImplementation(() => {
@@ -120,9 +120,9 @@ describe('Module Lifecycle', () => {
   it('should call onInstalled with array when modules are installed', async () => {
     const mockInstallHook = vi
       .fn()
-      .mockImplementation(([moduleA, moduleB]: ResolvedModule[]) => {
-        expect(moduleA.exports).toEqual({ bar: 'baz' });
-        expect(moduleB.exports).toEqual({ a: '1', b: 2 });
+      .mockImplementation(([moduleA, moduleB]: ModuleConfig[]) => {
+        expect(moduleA.resolved?.exports).toEqual({ bar: 'baz' });
+        expect(moduleB.resolved?.exports).toEqual({ a: '1', b: 2 });
       });
 
     const moduleALoader = createTestLoader<{ foo?: string }, { bar: string }>(
@@ -163,8 +163,8 @@ describe('Module Lifecycle', () => {
 
     expect(mockInstallHook).toHaveBeenCalledOnce();
     expect(mockInstallHook).toHaveBeenCalledWith([
-      moduleA.config.resolved,
-      moduleB.config.resolved
+      moduleA.config,
+      moduleB.config
     ]);
   });
 });

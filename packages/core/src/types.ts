@@ -86,7 +86,7 @@ export interface ModuleConfig<
 
 export type ModuleHookType = 'installed' | 'uninstall';
 
-export type ModuleHookCallback<T = Arrayable<ResolvedModule>> = (
+export type ModuleHookCallback<T = Arrayable<ModuleConfig>> = (
   module: T
 ) => Awaitable<any>;
 
@@ -146,37 +146,37 @@ export interface InstallHook<T extends ModuleOptions = ModuleOptions> {
     fn: ModuleHookCallback<{
       [P in keyof K]: ConditionalModuleType<
         K[P],
-        ResolvedModule<ModuleOptions, InferModuleValue<K[P]>>,
-        ResolvedModule
+        ModuleConfig<ModuleOptions, InferModuleValue<K[P]>>,
+        ModuleConfig
       >;
     }>
   ): void;
 
   <K extends ModuleKey>(
     name: K,
-    fn: ModuleHookCallback<ResolvedModule<ModuleOptions, ModuleValue<K>>>
+    fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
   ): void;
 
-  (name: 'any', fn: ModuleHookCallback<ResolvedModule>): void;
+  (name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
 
-  (name: 'all', fn: ModuleHookCallback<ResolvedModule[]>): void;
+  (name: 'all', fn: ModuleHookCallback<ModuleConfig[]>): void;
 
-  (name: AnyOrNeverModuleKey, fn: ModuleHookCallback<ResolvedModule>): void;
+  (name: AnyOrNeverModuleKey, fn: ModuleHookCallback<ModuleConfig>): void;
 
-  (fn: ModuleHookCallback<ResolvedModule<T>>): void;
+  (fn: ModuleHookCallback<ModuleConfig<T>>): void;
 }
 
 export interface UninstallHook<T extends ModuleOptions = ModuleOptions> {
   <K extends ModuleKey>(
     name: K,
-    fn: ModuleHookCallback<ResolvedModule<ModuleOptions, ModuleValue<K>>>
+    fn: ModuleHookCallback<ModuleConfig<ModuleOptions, ModuleValue<K>>>
   ): void;
 
-  (name: 'any', fn: ModuleHookCallback<ResolvedModule>): void;
+  (name: 'any', fn: ModuleHookCallback<ModuleConfig>): void;
 
-  (name: AnyOrNeverModuleKey, fn: ModuleHookCallback<ResolvedModule>): void;
+  (name: AnyOrNeverModuleKey, fn: ModuleHookCallback<ModuleConfig>): void;
 
-  (fn: ModuleHookCallback<ResolvedModule<T>>): void;
+  (fn: ModuleHookCallback<ModuleConfig<T>>): void;
 }
 
 export interface ModuleInstallFunction {
