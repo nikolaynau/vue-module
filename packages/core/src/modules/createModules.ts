@@ -227,39 +227,40 @@ export function createModules<T extends ModuleEntry<any, any>[]>(
     filter?: (module: ModuleInstance) => boolean,
     options?: ModuleExecutionOptions
   ) {
-    const moduleGroups: Record<ModuleEnforce | 'default', ModuleInstance[]> = {
+    const groups: Record<ModuleEnforce, ModuleInstance[]> = {
       pre: [],
       post: [],
-      fin: [],
       default: []
     };
 
     for (const module of moduleArray) {
-      if (filter && !filter(module)) {
-        continue;
+      const key = module.config.enforce;
+      if (key && key in groups) {
+        groups[key].push(module);
+      } else {
+        groups.default.push(module);
       }
-
-      const groupKey = (module.config.enforce as ModuleEnforce) ?? 'default';
-      moduleGroups[groupKey].push(module);
     }
 
-    const sequentialExecutionOptions: ModuleExecutionOptions = Object.assign(
+    if (typeof filter === 'function') {
+      groups.default = groups.default.filter(filter);
+    }
+
+    const seqExecutionOptions: ModuleExecutionOptions = Object.assign(
       {},
       options,
       { parallel: false } satisfies ModuleExecutionOptions
     );
 
-    for (const moduleGroup of [
-      [moduleGroups.pre, sequentialExecutionOptions],
-      [moduleGroups.default, options],
-      [moduleGroups.post, sequentialExecutionOptions],
-      [moduleGroups.fin, sequentialExecutionOptions]
+    for (const group of [
+      [groups.pre, seqExecutionOptions],
+      [groups.default, options],
+      [groups.post, seqExecutionOptions]
     ] satisfies [ModuleInstance[], ModuleExecutionOptions | undefined][]) {
-      const [modules, executionOptions] = moduleGroup;
-
+      const [modules, executionOptions] = group;
       if (modules.length > 0) {
         await handlePromises(
-          modules.map(m => () => fn(m)),
+          modules.map(module => () => fn(module)),
           executionOptions
         );
       }

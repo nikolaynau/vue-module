@@ -202,19 +202,13 @@ describe('ModuleManager', () => {
     const modulePre = createTrackingModule('modulePre', 'pre');
     const moduleDefault = createTrackingModule('moduleDefault');
     const modulePost = createTrackingModule('modulePost', 'post');
-    const moduleFin = createTrackingModule('moduleFin', 'fin');
 
-    const modules = [modulePost, moduleDefault, moduleFin, modulePre];
+    const modules = [modulePost, moduleDefault, modulePre];
     const manager = createModules(modules);
 
     await manager.install(() => true, { parallel: true });
 
-    expect(order).toEqual([
-      'modulePre',
-      'moduleDefault',
-      'modulePost',
-      'moduleFin'
-    ]);
+    expect(order).toEqual(['modulePre', 'moduleDefault', 'modulePost']);
   });
 
   it('should execute modules in enforce order during uninstall', async () => {
@@ -241,18 +235,12 @@ describe('ModuleManager', () => {
     const modulePre = createTrackingModule('modulePre', 'pre');
     const moduleDefault = createTrackingModule('moduleDefault');
     const modulePost = createTrackingModule('modulePost', 'post');
-    const moduleFin = createTrackingModule('moduleFin', 'fin');
 
-    const modules = [moduleDefault, moduleFin, modulePre, modulePost];
+    const modules = [moduleDefault, modulePre, modulePost];
     const manager = createModules(modules);
 
     await manager.uninstall();
 
-    expect(order).toEqual([
-      'modulePre',
-      'moduleDefault',
-      'modulePost',
-      'moduleFin'
-    ]);
+    expect(order).toEqual(['modulePre', 'moduleDefault', 'modulePost']);
   });
 });

@@ -57,7 +57,7 @@ export interface ModuleDefinition<
 
 export type ModuleDep = () => Awaitable<any>;
 
-export type ModuleEnforce = 'pre' | 'post' | 'fin';
+export type ModuleEnforce = 'pre' | 'post' | 'default';
 
 export type ModuleLoaderResult<T> = T | { default: T };
 

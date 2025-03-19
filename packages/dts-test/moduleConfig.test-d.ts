@@ -83,7 +83,7 @@ expectError<ModuleConfig>({
   loader: async () => ({
     meta: { name: 'InvalidEnforce' }
   }),
-  enforce: 'invalidPhase' // Should be 'pre', 'post', or 'fin'
+  enforce: 'invalidPhase' // Should be 'pre', 'post'
 });
 
 // Invalid dependency type
