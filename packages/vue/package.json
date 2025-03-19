@@ -24,7 +24,11 @@
       "import": "./dist/index.es.js",
       "require": "./dist/index.umd.js"
     },
-    "./*": "./*"
+    "./builtin": {
+      "types": "./dist/builtin/index.d.ts",
+      "import": "./dist/builtin/builtin.es.js",
+      "require": "./dist/builtin/builtin.umd.js"
+    }
   },
   "main": "./dist/index.umd.js",
   "module": "./dist/index.es.js",
@@ -33,10 +37,16 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build"
+    "build": "vite build && vite build -c vite.config.builtin.ts"
   },
   "peerDependencies": {
-    "vue": ">=3.0.0"
+    "vue": ">=3.0.0",
+    "vue-router": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vue-router": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@vuemodule/core": "workspace:*"

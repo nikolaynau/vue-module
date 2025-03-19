@@ -4,7 +4,7 @@ import {
   type ModuleEntry,
   type ModuleManager
 } from '@vuemodule/core';
-import { provideModuleScope } from './inject';
+import { moduleScopeKey } from './inject';
 
 export interface PluginOptions {
   modules?: ModuleEntry<any, any>[] | ModuleManager;
@@ -12,19 +12,17 @@ export interface PluginOptions {
 
 export const VuePlugin: Plugin<PluginOptions> = {
   install(app, options) {
-    let modules: ModuleManager;
+    let modules: ModuleManager | undefined = Array.isArray(options.modules)
+      ? createModules(options.modules)
+      : options.modules;
 
-    if (Array.isArray(options.modules)) {
-      modules = createModules(options.modules);
-    } else if (options.modules) {
-      modules = options.modules;
-    } else {
+    if (!modules) {
       modules = createModules([]);
     }
 
     const scope = modules.getScope();
     if (scope) {
-      provideModuleScope(scope);
+      app.provide(moduleScopeKey, scope);
     }
   }
 };
