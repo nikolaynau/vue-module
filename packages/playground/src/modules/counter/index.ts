@@ -24,12 +24,12 @@ declare module '@vuemodule/core' {
 export default defineModule<ModuleOptions, CounterModuleReturn, ModuleKey>(
   'counter',
   ({ onInstalled }) => {
-    onInstalled(['router', 'idx'], ([routerModule, idxModule]) => {
-      const { router } = getModuleExports(routerModule)!;
+    onInstalled(['layout', 'idx'], ([layoutModule, idxModule]) => {
+      const { routes } = getModuleExports(layoutModule)!;
       const { nav } = getModuleExports(idxModule)!;
 
-      router.addRoute({
-        path: '/counter',
+      routes.value.push({
+        path: 'counter',
         name: 'counter',
         component: CounterPage
       });

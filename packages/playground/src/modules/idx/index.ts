@@ -29,11 +29,11 @@ export default defineModule<ModuleOptions, IdxModuleReturn, ModuleKey>(
   ({ onInstalled }) => {
     const nav = ref<NavItem[]>([]);
 
-    onInstalled('router', routerModule => {
-      const { router } = getModuleExports(routerModule)!;
-      router.addRoute({
-        path: '/',
-        name: 'root',
+    onInstalled('layout', layoutModule => {
+      const { routes } = getModuleExports(layoutModule)!;
+      routes.value.push({
+        path: '',
+        name: 'home',
         component: IndexPage
       });
     });

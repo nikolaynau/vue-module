@@ -18,7 +18,8 @@ app.use(VueModule, {
     PostRouterModule(),
     PrintModule(),
     () => import('./modules/counter'),
-    () => import('./modules/idx')
+    () => import('./modules/idx'),
+    () => import('./modules/layout')
   ]
 });
 
