@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { RouterLink } from 'vue-router';
+
 const links: any = [];
 </script>
 

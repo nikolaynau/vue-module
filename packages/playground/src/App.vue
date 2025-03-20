@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useLoadModules } from '@vuemodule/vue';
+import { RouterView } from 'vue-router';
 
 const { isLoading, isReady, error } = useLoadModules({ parallel: true });
 </script>
