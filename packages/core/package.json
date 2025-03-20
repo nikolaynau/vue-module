@@ -1,6 +1,6 @@
 {
   "name": "@vuemodule/core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "description": "Load modules using the setup function for configuration and invoking hooks.",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",

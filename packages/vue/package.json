@@ -1,6 +1,6 @@
 {
   "name": "@vuemodule/vue",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "description": "Plugin and Composition API utilities for @vuemodule/core.",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",

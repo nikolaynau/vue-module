@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "packageManager": "pnpm@10.6.5",
   "type": "module",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
