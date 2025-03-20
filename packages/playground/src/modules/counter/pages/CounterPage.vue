@@ -8,7 +8,7 @@ const { counter, increment, decrement } = useSharedCounter();
   <div>
     Counter:
     <button @click="decrement">-</button>
-    <span> {{ counter }} </span>
+    <span>&nbsp;{{ counter }}&nbsp;</span>
     <button @click="increment">+</button>
   </div>
 </template>
