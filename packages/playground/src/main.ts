@@ -7,7 +7,7 @@ import {
   RouterModule,
   PostRouterModule,
   PrintModule
-} from '@vuemodule/vue/builtin';
+} from '@vuemodule/builtin';
 
 const app = createApp(App);
 

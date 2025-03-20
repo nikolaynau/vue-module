@@ -11,7 +11,6 @@ export default defineConfig({
   plugins: [
     dts({
       include: ['src'],
-      exclude: ['src/builtin'],
       tsconfigPath: 'tsconfig.json',
       rollupTypes: true,
       aliasesExclude: [MODULE_CORE_LIB]

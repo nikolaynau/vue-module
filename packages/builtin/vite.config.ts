@@ -10,31 +10,27 @@ const MODULE_CORE_LIB = '@vuemodule/core';
 export default defineConfig({
   plugins: [
     dts({
-      entryRoot: 'src/builtin',
-      include: ['src/builtin'],
+      include: ['src'],
       tsconfigPath: 'tsconfig.json',
-      rollupTypes: false,
-      aliasesExclude: [MODULE_CORE_LIB],
-      outDir: 'dist/builtin'
+      rollupTypes: true,
+      aliasesExclude: [MODULE_CORE_LIB]
     })
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/builtin/index.ts'),
-      name: 'VueModuleVueBuiltin',
-      fileName: format => `builtin.${format}.js`
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'VueModuleBuiltin',
+      fileName: format => `index.${format}.js`
     },
     rollupOptions: {
-      external: ['vue', 'vue-router', MODULE_CORE_LIB],
+      external: ['vue', MODULE_CORE_LIB],
       output: {
         globals: {
           vue: 'Vue',
-          'vue-router': 'VueRouter',
           [MODULE_CORE_LIB]: 'VueModuleCore'
         }
       }
     },
-    sourcemap: true,
-    outDir: 'dist/builtin'
+    sourcemap: true
   }
 });
