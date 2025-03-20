@@ -1,6 +1,6 @@
 {
   "name": "@vuemodule/builtin",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "description": "A collection of built-in modules.",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
