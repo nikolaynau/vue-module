@@ -6,7 +6,7 @@
 
 ## Usage
 
-Run the CLI to create a new Vue Module:
+Run the CLI to create a new module from template:
 
 ```bash
 npm init @vuemodule/vite
