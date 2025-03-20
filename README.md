@@ -9,7 +9,7 @@
 - Modular architecture with type-safe configuration.
 - Support for asynchronous module loading and setup.
 - Dependency injection with dependency hooks.
-- Flexible enforcement options (`pre`, `post`, `fin`).
+- Flexible enforcement options (`pre`, `post`).
 
 ## License
 
