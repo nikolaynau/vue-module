@@ -38,15 +38,15 @@ export default defineModule('moduleA', () => {
 #### moduleB.js
 
 ```js
-import { defineModule } from '@vuemodule/core';
+import { defineModule, getModuleExports } from '@vuemodule/core';
 
 export default defineModule(({ onInstalled, onUninstall }) => {
   onInstalled('moduleA', moduleA => {
-    console.log(moduleA.exports); // { bar: 'baz' };
+    console.log(getModuleExports(moduleA)); // { bar: 'baz' };
   });
 
   onUninstall('moduleA', moduleA => {
-    console.log(moduleA.exports); // { bar: 'baz' };
+    console.log(getModuleExports(moduleA)); // { bar: 'baz' };
   });
 });
 ```
