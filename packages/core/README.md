@@ -6,15 +6,22 @@
 
 ## Installation
 
+Using [pnpm](https://pnpm.io/)
+
 ```bash
-# npm
-$ npm add @vuemodule/core
+pnpm add @vuemodule/core
+```
 
-# yarn
-$ yarn add @vuemodule/core
+Using [yarn](https://yarnpkg.com/)
 
-# pnpm
-$ pnpm add @vuemodule/core
+```bash
+yarn add @vuemodule/core
+```
+
+Using [npm](https://npmjs.com/)
+
+```bash
+npm add @vuemodule/core
 ```
 
 ## Usage
