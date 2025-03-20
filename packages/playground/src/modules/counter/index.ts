@@ -1,5 +1,6 @@
 import {
   defineModule,
+  getModuleExports,
   type ModuleKey,
   type ModuleOptions
 } from '@vuemodule/core';
@@ -7,6 +8,8 @@ import {
   useSharedCounter,
   type UseSharedCounterReturn
 } from './composables/useSharedCounter';
+
+const CounterPage = () => import('./pages/CounterPage.vue');
 
 export interface CounterModuleReturn {
   useSharedCounter: () => UseSharedCounterReturn;
@@ -20,7 +23,23 @@ declare module '@vuemodule/core' {
 
 export default defineModule<ModuleOptions, CounterModuleReturn, ModuleKey>(
   'counter',
-  () => {
+  ({ onInstalled }) => {
+    onInstalled(['router', 'idx'], ([routerModule, idxModule]) => {
+      const { router } = getModuleExports(routerModule)!;
+      const { nav } = getModuleExports(idxModule)!;
+
+      router.addRoute({
+        path: '/counter',
+        name: 'counter',
+        component: CounterPage
+      });
+
+      nav.value.push({
+        title: 'Counter Demo',
+        route: { name: 'counter' }
+      });
+    });
+
     return { useSharedCounter };
   }
 );
