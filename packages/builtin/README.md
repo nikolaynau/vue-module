@@ -4,21 +4,6 @@
 
 [Documentation & Demo](https://vuemodule.org)
 
-## Installation
-
-```bash
-# npm
-$ npm add @vuemodule/builtin
-
-# yarn
-$ yarn add @vuemodule/builtin
-
-# pnpm
-$ pnpm add @vuemodule/builtin
-```
-
-## Usage
-
 ## License
 
 Licensed under the [MIT License](./LICENSE).

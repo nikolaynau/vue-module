@@ -51,7 +51,7 @@ export default defineModule(({ onInstalled, onUninstall }) => {
 });
 ```
 
-### Installing Modules
+### Single Module
 
 #### main.js
 
@@ -71,7 +71,7 @@ console.log(moduleA.exports); // The object returned by the module's setup funct
 await moduleA.uninstall();
 ```
 
-### Managing Multiple Modules
+### Multiple Modules
 
 #### main.js
 

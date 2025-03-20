@@ -9,7 +9,7 @@
 Run the CLI to create a new Vue Module:
 
 ```bash
-$ npm init @vuemodule/vite
+npm init @vuemodule/vite
 ```
 
 ## License

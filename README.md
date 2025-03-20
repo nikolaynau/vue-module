@@ -11,6 +11,15 @@
 - Dependency injection with dependency hooks.
 - Flexible enforcement options (`pre`, `post`).
 
+## Packages
+
+| Package                                        | Version                                                                                                                     |
+| ---------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| [@vuemodule/core](packages/core)               | [![npm version](https://img.shields.io/npm/v/@vuemodule/core.svg)](https://npmjs.org/package/@vuemodule/core)               |
+| [@vuemodule/vue](packages/vue)                 | [![npm version](https://img.shields.io/npm/v/@vuemodule/vue.svg)](https://npmjs.org/package/@vuemodule/vue)                 |
+| [@vuemodule/builtin](packages/builtin)         | [![npm version](https://img.shields.io/npm/v/@vuemodule/builtin.svg)](https://npmjs.org/package/@vuemodule/builtin)         |
+| [@vuemodule/create-vite](packages/create-vite) | [![npm version](https://img.shields.io/npm/v/@vuemodule/create-vite.svg)](https://npmjs.org/package/@vuemodule/create-vite) |
+
 ## License
 
 Licensed under the [MIT License](./LICENSE).
