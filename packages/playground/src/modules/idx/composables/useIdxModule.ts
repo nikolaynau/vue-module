@@ -1,3 +1,3 @@
 import { useModule } from '@vuemodule/vue';
 
-export const useIdxModule = () => useModule('idx');
+export const useIdxModule = () => useModule('idx')!;

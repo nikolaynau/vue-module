@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { RouterLink } from 'vue-router';
+import { useIdxModule } from '../composables/useIdxModule';
 
-const links: any = [];
+const { nav } = useIdxModule();
 </script>
 
 <template>
@@ -9,8 +10,8 @@ const links: any = [];
     <h1>Index Page</h1>
     <nav>
       <ul>
-        <li v-for="(link, i) in links" :key="i">
-          <RouterLink :to="link.to"> {{ link.name }}</RouterLink>
+        <li v-for="(item, i) in nav" :key="i">
+          <RouterLink :to="item.route"> {{ item.title }}</RouterLink>
         </li>
       </ul>
     </nav>
