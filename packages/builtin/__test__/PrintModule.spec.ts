@@ -7,12 +7,12 @@ import {
   beforeEach,
   type MockInstance
 } from 'vitest';
-import { PrintModule, type PrintModuleOptions } from '../src/PrintModule';
 import type {
   ModuleConfig,
   ModuleContext,
   ModuleDefinition
 } from '@vuemodule/core';
+import { PrintModule, type PrintModuleOptions } from '../src/PrintModule';
 
 vi.mock('@vuemodule/core', () => {
   return {

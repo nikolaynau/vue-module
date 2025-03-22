@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Router } from 'vue-router';
+import type { ModuleContext, ModuleDefinition } from '@vuemodule/core';
 import {
   RouterModule,
   type RouterModuleOptions,
   type RouterModuleReturn
 } from '../src/RouterModule';
-import type { ModuleContext, ModuleDefinition } from '@vuemodule/core';
 
 describe('RouterModule', () => {
   let mockRouter: Router;
