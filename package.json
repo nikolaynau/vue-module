@@ -1,7 +1,7 @@
 {
   "name": "@vuemodule/monorepo",
   "type": "module",
-  "version": "1.0.6",
+  "version": "1.0.5",
   "private": true,
   "packageManager": "pnpm@10.18.1",
   "author": "Nikolay Naumenkov<https://github.com/nikolaynau>",
