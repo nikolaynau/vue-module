@@ -9,7 +9,9 @@ const publicPackages = packages.filter(file => {
   return !content.private;
 });
 
+const normalized = publicPackages.map(p => p.replace(/\\/g, '/'));
+
 export default defineConfig({
   all: true,
-  files: ['package.json', ...publicPackages]
+  files: ['package.json', ...normalized]
 });
