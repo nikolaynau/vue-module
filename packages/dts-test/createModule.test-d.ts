@@ -26,7 +26,7 @@ expectType<ModuleInstance<{ foo: string; baz: number }, ModuleAReturn>>(
 expectType<ModuleInstance<ModuleAOptions, ModuleAReturn>>(
   createModule({
     loader: () => import('./moduleA'),
-    options: { foo: 'bar' },
+    options: { foo: 'bar' } as ModuleAOptions,
     enforce: 'post',
     deps: [() => Promise.resolve(), () => Promise.resolve()]
   })

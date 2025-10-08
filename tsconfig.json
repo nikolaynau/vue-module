@@ -1,28 +1,5 @@
 {
+  "extends": "./tsconfig.base.json",
   "include": ["packages/*/src", "packages/*/__test__"],
-  "exclude": ["**/*.test-d.ts", "node_modules", "**/dist"],
-  "compilerOptions": {
-    "target": "ESNext",
-    "jsx": "preserve",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "baseUrl": ".",
-    "rootDir": ".",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "paths": {
-      "@vuemodule/*": ["packages/*/src"]
-    },
-    "noEmit": true,
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-    "moduleDetection": "force",
-    "jsxImportSource": "vue",
-    "noImplicitThis": true,
-    "strict": true,
-    "verbatimModuleSyntax": true,
-    "useDefineForClassFields": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
-  }
+  "exclude": ["**/*.test-d.ts", "node_modules", "**/dist"]
 }
