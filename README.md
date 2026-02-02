@@ -2,8 +2,6 @@
 
 > A flexible TypeScript-based module system designed for building modular, configurable, and extensible applications.
 
-[Documentation & Demo](https://vuemodule.org)
-
 ## Features
 
 - Modular architecture with type-safe configuration.
